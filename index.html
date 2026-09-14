@@ -1,3216 +1,690 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MillyGram</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MillyGram</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap');
 
 :root {
-  --primary: #2AABEE;
-  --primary-dark: #229ED9;
-  --bg: #17212B;
-  --bg-secondary: #0E1621;
-  --bg-chat: #0E1621;
-  --bg-input: #242F3D;
-  --bg-message-out: #2B5278;
-  --bg-message-in: #182533;
-  --text: #F5F5F5;
-  --text-secondary: #8696A7;
-  --border: #222D38;
-  --green: #4CAF50;
-  --danger: #E53935;
+  --bg: #0a0a1a;
+  --bg2: #111133;
+  --card: #161640;
+  --border: #2a2a60;
+  --accent: #7b5ea7;
+  --accent2: #a78bfa;
+  --accent3: #c4b5fd;
+  --text: #e0e0f0;
+  --dim: #6b6b9a;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --glow: rgba(123,94,167,0.4);
 }
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Inter', -apple-system, sans-serif;
   background: var(--bg);
   color: var(--text);
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-.screen {
-  display: none;
-  height: 100vh;
-  flex-direction: column;
+/* ── splash ── */
+#splash {
+  position: fixed; inset: 0; z-index: 999;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  transition: opacity 0.6s, visibility 0.6s;
+}
+#splash.hide { opacity: 0; visibility: hidden; pointer-events: none; }
+
+.splash-logo {
+  width: 120px; height: 120px;
+  animation: pulse-logo 2s ease-in-out infinite;
+}
+.splash-title {
+  font-size: 32px; font-weight: 900;
+  background: linear-gradient(135deg, var(--accent2), var(--accent3), #fff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-top: 20px; letter-spacing: 2px;
+}
+.splash-sub {
+  color: var(--dim); font-size: 13px; margin-top: 8px;
+  letter-spacing: 4px; text-transform: uppercase;
+}
+.splash-dots {
+  margin-top: 32px; display: flex; gap: 6px;
+}
+.splash-dots span {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent2);
+  animation: dot-bounce 1.4s infinite ease-in-out;
+}
+.splash-dots span:nth-child(2) { animation-delay: 0.16s; }
+.splash-dots span:nth-child(3) { animation-delay: 0.32s; }
+
+@keyframes pulse-logo {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 12px var(--glow)); }
+  50% { transform: scale(1.08); filter: drop-shadow(0 0 28px var(--glow)); }
+}
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: scale(0.4); opacity: 0.3; }
+  40% { transform: scale(1); opacity: 1; }
 }
 
-.screen.active {
-  display: flex;
-  animation: screenFade 0.4s ease;
+/* ── auth ── */
+#auth-screen {
+  display: none; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 100vh;
+  padding: 24px 20px; animation: fadeUp 0.5s ease;
 }
-
-@keyframes screenFade {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: translateY(0); }
+.auth-logo { width: 80px; height: 80px; margin-bottom: 16px; }
+.auth-title {
+  font-size: 28px; font-weight: 900;
+  background: linear-gradient(135deg, var(--accent2), #fff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 4px;
 }
-
-/* MillyNotifications Welcome Screen */
-.welcome-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 40px 28px;
-  background: radial-gradient(circle at 50% 20%, rgba(42, 171, 238, 0.12), transparent 60%);
-}
-
-.welcome-logo {
-  width: 96px;
-  height: 96px;
-  background: linear-gradient(135deg, var(--primary), #7C4DFF);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 28px;
-  box-shadow: 0 8px 30px rgba(42, 171, 238, 0.35);
-  animation: logoFloat 2.5s ease-in-out infinite;
-}
-
-.welcome-logo svg {
-  width: 48px;
-  height: 48px;
-  color: white;
-}
-
-@keyframes logoFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
-}
-
-.welcome-content h1 {
-  font-size: 26px;
-  font-weight: 700;
-  margin-bottom: 12px;
-  background: linear-gradient(135deg, var(--primary), #7C4DFF);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.welcome-content p {
-  color: var(--text-secondary);
-  font-size: 15px;
-  line-height: 1.5;
-  margin-bottom: 28px;
-  max-width: 320px;
-}
-
-.welcome-tip {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(42, 171, 238, 0.1);
-  border: 1px solid rgba(42, 171, 238, 0.25);
-  color: var(--text-secondary);
-  font-size: 13px;
-  padding: 12px 16px;
-  border-radius: 12px;
+.auth-mystery {
+  font-size: 12px; color: var(--dim);
+  letter-spacing: 3px; text-transform: uppercase;
   margin-bottom: 32px;
-  text-align: left;
-  max-width: 340px;
 }
 
-.welcome-tip svg {
-  width: 18px;
-  height: 18px;
-  color: var(--primary);
-  flex-shrink: 0;
+.auth-tabs {
+  display: flex; gap: 0; width: 100%; max-width: 360px;
+  border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--border); margin-bottom: 24px;
+  background: var(--bg2);
+}
+.auth-tab {
+  flex: 1; padding: 12px; text-align: center;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  color: var(--dim); transition: all 0.3s;
+  border: none; background: transparent;
+}
+.auth-tab.active {
+  background: var(--accent); color: #fff;
 }
 
-.welcome-content .btn-primary {
-  max-width: 320px;
-  font-size: 17px;
+.auth-form {
+  width: 100%; max-width: 360px;
+  display: none; flex-direction: column; gap: 14px;
 }
+.auth-form.active { display: flex; }
 
-/* Auth Screen */
-.auth-container {
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 40px 20px;
-  width: 100%;
+.auth-field {
+  position: relative;
 }
+.auth-field input {
+  width: 100%; padding: 14px 16px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--text);
+  font-size: 15px; font-family: inherit; outline: none;
+  transition: border 0.3s;
+}
+.auth-field input:focus { border-color: var(--accent2); }
+.auth-field input::placeholder { color: var(--dim); }
 
-.auth-logo {
-  text-align: center;
-  margin-bottom: 50px;
+.auth-btn {
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none; border-radius: 12px;
+  color: #fff; font-size: 16px; font-weight: 700;
+  cursor: pointer; margin-top: 6px;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-
-.logo-icon {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-  box-shadow: 0 4px 20px rgba(42, 171, 238, 0.3);
-}
-
-.logo-icon svg {
-  width: 40px;
-  height: 40px;
-  color: white;
-}
-
-.auth-logo h1 {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 8px;
-  background: linear-gradient(135deg, var(--primary), #7C4DFF);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.auth-logo p {
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-.auth-step {
-  display: none;
-}
+.auth-btn:active { transform: scale(0.97); }
+.auth-btn:hover { box-shadow: 0 4px 24px var(--glow); }
+.auth-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .auth-error {
-  background: rgba(229, 57, 53, 0.12);
-  color: #ff6b5e;
-  border: 1px solid rgba(229, 57, 53, 0.4);
-  padding: 12px 14px;
-  border-radius: 10px;
-  font-size: 13px;
-  margin-bottom: 16px;
-  display: none;
-  line-height: 1.4;
+  background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+  color: #fca5a5; padding: 10px 14px; border-radius: 10px;
+  font-size: 13px; text-align: center; display: none;
 }
 
-.auth-error.show {
-  display: block;
-  animation: fadeIn 0.2s ease;
+.auth-hint {
+  color: var(--dim); font-size: 12px; text-align: center;
+  margin-top: 12px; line-height: 1.5;
 }
 
-.auth-step.active {
-  display: block;
+/* ── chat ── */
+#chat-screen {
+  display: none; flex-direction: column;
+  height: 100vh; height: 100dvh;
 }
 
-.auth-step h2 {
-  font-size: 20px;
-  margin-bottom: 8px;
-}
-
-.auth-subtitle {
-  color: var(--text-secondary);
-  font-size: 14px;
-  margin-bottom: 24px;
-}
-
-.phone-input-group {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.country-field {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--bg-input);
-  border: none;
-  padding: 0 12px;
-  border-radius: 12px;
-  font-size: 16px;
-  color: var(--text);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.country-field:hover {
-  background: #2C3A4B;
-}
-
-.country-field:focus {
-  box-shadow: 0 0 0 2px var(--primary);
-  outline: none;
-}
-
-.country-flag {
-  font-size: 20px;
-  line-height: 1;
-}
-
-.country-code {
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.country-chevron {
-  width: 16px;
-  height: 16px;
-  color: var(--text-secondary);
-  flex-shrink: 0;
-}
-
-/* Country Picker Modal */
-.country-picker {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 100;
-  display: flex;
-  align-items: flex-end;
-  animation: slideUp 0.25s ease;
-}
-
-.country-picker.hidden {
-  display: none;
-}
-
-@keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
-
-.country-sheet {
-  width: 100%;
-  height: 85vh;
-  background: var(--bg);
-  border-radius: 16px 16px 0 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.country-sheet-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-}
-
-.country-sheet-header h2 {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.country-search {
-  margin: 0 12px 8px;
-  background: var(--bg-input);
-  border: none;
-  padding: 12px 16px;
-  border-radius: 24px;
-  color: var(--text);
-  outline: none;
-  font-size: 15px;
-}
-
-.country-search:focus {
-  box-shadow: 0 0 0 2px var(--primary);
-}
-
-.country-list {
-  flex: 1;
-  overflow-y: auto;
-}
-
-.country-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
-  cursor: pointer;
-  border-bottom: 1px solid var(--border);
-  transition: background 0.15s;
-}
-
-.country-item:hover {
-  background: var(--bg-secondary);
-}
-
-.country-item-flag {
-  font-size: 22px;
-}
-
-.country-item-name {
-  flex: 1;
-  font-size: 15px;
-}
-
-.country-item-code {
-  color: var(--text-secondary);
-  font-size: 15px;
-}
-
-.country-list-empty {
-  padding: 24px;
-  text-align: center;
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-input[type="tel"],
-input[type="text"] {
-  flex: 1;
-  background: var(--bg-input);
-  border: none;
-  padding: 14px 16px;
-  border-radius: 12px;
-  font-size: 16px;
-  color: var(--text);
-  outline: none;
-  transition: all 0.2s;
-}
-
-input:focus {
-  box-shadow: 0 0 0 2px var(--primary);
-}
-
-.btn-primary {
-  width: 100%;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: white;
-  border: none;
-  padding: 14px 24px;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(42, 171, 238, 0.3);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-}
-
-.btn-text {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 14px;
-  cursor: pointer;
-  margin-top: 16px;
-  padding: 8px;
-}
-
-.btn-text:hover {
-  color: var(--primary);
-}
-
-.code-display {
-  background: var(--bg-secondary);
-  border: 1px dashed var(--primary);
-  border-radius: 8px;
-  padding: 12px;
-  text-align: center;
-  margin-bottom: 24px;
-  font-family: monospace;
-  color: var(--primary);
-  font-size: 18px;
-  letter-spacing: 2px;
-}
-
-.code-display .code-fallback {
-  font-size: 13px;
-  color: var(--text-secondary);
-  letter-spacing: 0;
-  margin-top: 6px;
-  display: inline-block;
-}
-
-.code-inputs {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  margin-bottom: 24px;
-}
-
-.code-digit {
-  width: 48px;
-  height: 56px;
-  text-align: center;
-  font-size: 24px;
-  font-weight: 600;
-  background: var(--bg-input);
-  border: none;
-  border-radius: 12px;
-  color: var(--text);
-  outline: none;
-}
-
-.code-digit:focus {
-  box-shadow: 0 0 0 2px var(--primary);
-}
-
-/* App Header */
-.app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.header-left h1 {
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.btn-icon {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-
-.btn-icon:hover {
-  background: var(--bg-input);
-  color: var(--primary);
-}
-
-.btn-icon svg {
-  width: 22px;
-  height: 22px;
-}
-
-/* Chat List */
-.chat-list {
-  flex: 1;
-  overflow-y: auto;
-}
-
-.chat-item {
-  display: flex;
-  align-items: center;
-  padding: 12px 16px;
-  cursor: pointer;
-  transition: background 0.2s;
-  gap: 12px;
-  border-bottom: 1px solid var(--border);
-}
-
-.chat-item:hover {
-  background: var(--bg-secondary);
-}
-
-.chat-item-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: var(--bg-input);
-}
-
-.chat-item-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.chat-item-name {
-  font-weight: 500;
-  font-size: 15px;
-  margin-bottom: 4px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.verified-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 17px;
-  height: 17px;
-  background: linear-gradient(135deg, var(--primary), #4FC3F7);
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.verified-badge svg {
-  width: 10px;
-  height: 10px;
-  color: white;
-}
-
-.verified-badge-lg {
-  width: 24px;
-  height: 24px;
-}
-
-.verified-badge-lg svg {
-  width: 14px;
-  height: 14px;
-}
-
-.profile-avatar-container {
-  position: relative;
-  cursor: pointer;
-}
-
-.avatar-edit-badge {
-  position: absolute;
-  right: 2px;
-  bottom: 2px;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #2AABEE, #4FC3F7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-}
-
-.avatar-edit-badge svg {
-  width: 18px;
-  height: 18px;
-  color: white;
-}
-
-.profile-verified-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--text-secondary);
-  font-size: 14px;
-  margin-top: -16px;
-}
-
-.premium-name-star {
-  margin-left: 6px;
-  font-size: 15px;
-}
-
-.settings-list {
-  padding: 16px;
-}
-
-.settings-panel {
-  background: var(--card);
-  border-radius: 14px;
-  overflow: hidden;
-}
-
-.settings-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 16px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.settings-item:active {
-  background: rgba(128, 128, 128, 0.12);
-}
-
-.settings-item-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  flex-shrink: 0;
-}
-
-.premium-icon {
-  background: linear-gradient(135deg, #FFD54F, #FFA726);
-  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.4);
-}
-
-.security-icon {
-  background: linear-gradient(135deg, #81C784, #4CAF50);
-  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4);
-}
-
-.stars-icon {
-  background: linear-gradient(135deg, #FFD54F, #FF9800);
-  box-shadow: 0 2px 8px rgba(255, 193, 7, 0.4);
-}
-
-.stars-balance {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.stars-balance-value {
-  font-size: 44px;
-  font-weight: 800;
-  color: #FFD54F;
-}
-
-.stars-balance-label {
-  font-size: 18px;
-  color: var(--text-secondary);
-}
-
-.stars-success {
-  color: #69F0AE;
-  font-size: 14px;
-  margin: 4px 0 0;
-  text-align: center;
-}
-
-.number-icon {
-  background: linear-gradient(135deg, #4FC3F7, #0288D1);
-  box-shadow: 0 2px 8px rgba(79, 195, 247, 0.4);
-}
-
-.number-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-top: 14px;
-}
-
-.number-card {
-  background: var(--card);
-  border-radius: 16px;
-  padding: 20px 14px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
-}
-
-.number-card-prefix {
-  font-size: 30px;
-  font-weight: 800;
-  color: #4FC3F7;
-}
-
-.number-card-price {
-  font-size: 14px;
-  color: #FFD54F;
-  font-weight: 700;
-}
-
-.btn-buy {
-  margin-top: 4px;
-  padding: 8px 26px;
-  border: none;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #2AABEE, #4FC3F7);
-  color: #fff;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.number-result {
-  margin-top: 16px;
-  background: var(--card);
-  border-radius: 16px;
-  padding: 16px;
-  text-align: center;
-}
-
-.number-result p {
-  margin: 0 0 10px;
-  color: var(--text);
-}
-
-.number-code-box {
-  background: rgba(42, 171, 238, 0.15);
-  border: 1px dashed #2AABEE;
-  border-radius: 12px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  cursor: pointer;
-}
-
-.number-code-box span:first-child {
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: #4FC3F7;
-}
-
-.copy-hint {
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.number-redeem {
-  margin-top: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.number-redeem p {
-  margin: 0;
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-.number-redeem input {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 14px;
-  border-radius: 12px;
-  border: none;
-  background: var(--card);
-  color: var(--text);
-  font-size: 16px;
-  letter-spacing: 0.5px;
-  outline: none;
-}
-
-.number-redeem input:focus {
-  box-shadow: 0 0 0 2px rgba(42, 171, 238, 0.5);
-}
-
-.number-result-phone {
-  margin: 6px 0 0;
-  color: #4FC3F7;
-  font-size: 14px;
-}
-
-.number-choice {
-  display: flex;
-  gap: 10px;
-}
-
-.number-choice-btn {
-  flex: 1;
-  padding: 12px;
-  border-radius: 12px;
-  border: 2px solid var(--card);
-  background: var(--card);
-  color: var(--text-secondary);
-  font-size: 16px;
-  font-weight: 700;
-  transition: all 0.2s;
-}
-
-.number-choice-btn.active {
-  border-color: #2AABEE;
-  background: rgba(42, 171, 238, 0.15);
-  color: #4FC3F7;
-}
-
-.input-error {
-  box-shadow: 0 0 0 2px rgba(255, 82, 82, 0.9);
-  animation: shake 0.4s;
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-6px); }
-  75% { transform: translateX(6px); }
-}
-
-.security-set {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.security-set input {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 14px;
-  border-radius: 12px;
-  border: none;
-  background: var(--card);
-  color: var(--text);
-  font-size: 16px;
-  outline: none;
-}
-
-.security-set input:focus {
-  box-shadow: 0 0 0 2px rgba(42, 171, 238, 0.5);
-}
-
-.settings-item-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.settings-item-title {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.settings-item-subtitle {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-top: 2px;
-}
-
-.settings-chevron {
-  width: 20px;
-  height: 20px;
-  color: var(--text-secondary);
-  flex-shrink: 0;
-}
-
-.premium-content {
-  padding: 20px 16px;
-}
-
-.premium-hero {
-  text-align: center;
-  padding: 12px 0 20px;
-}
-
-.premium-hero-icon {
-  font-size: 56px;
-  line-height: 1;
-}
-
-.premium-hero h2 {
-  margin: 10px 0 6px;
-  font-size: 20px;
-}
-
-.premium-hero p {
-  color: var(--text-secondary);
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.premium-active {
-  text-align: center;
-  padding: 16px;
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(255, 193, 7, 0.18), rgba(255, 167, 38, 0.12));
-  border: 1px solid rgba(255, 193, 7, 0.45);
-}
-
-.premium-active-badge {
-  font-size: 18px;
-  font-weight: 700;
-  color: #FFB300;
-}
-
-.premium-active p {
-  margin-top: 8px;
-  font-size: 14px;
-  color: var(--text);
-}
-
-.premium-buy-info {
-  background: var(--card);
-  border-radius: 14px;
-  padding: 14px 16px;
-  margin-bottom: 14px;
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.premium-buy-info ol {
-  margin: 6px 0 0 18px;
-}
-
-.premium-buy-info code {
-  background: rgba(128, 128, 128, 0.18);
-  padding: 1px 6px;
-  border-radius: 6px;
-  font-size: 13px;
-}
-
-#premium-code-input {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 14px;
-  border-radius: 12px;
-  border: none;
-  background: var(--card);
-  color: var(--text);
-  font-size: 16px;
-  text-align: center;
-  letter-spacing: 3px;
-  margin-bottom: 12px;
-  outline: none;
-}
-
-#premium-code-input:focus {
-  box-shadow: 0 0 0 2px rgba(42, 171, 238, 0.5);
-}
-
-.chat-item-last {
-  color: var(--text-secondary);
-  font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.chat-item-meta {
-  text-align: right;
-  min-width: fit-content;
-}
-
-.chat-item-time {
-  font-size: 11px;
-  color: var(--text-secondary);
-}
-
-.chat-item-unread {
-  background: var(--primary);
-  color: white;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 10px;
-  margin-top: 4px;
-  display: inline-block;
-}
-
-.empty-state {
-  flex: 1;
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-secondary);
-  gap: 12px;
-}
-
-.empty-state svg {
-  width: 80px;
-  height: 80px;
-  opacity: 0.3;
-}
-
-.empty-state.show {
-  display: flex;
-}
-
-.empty-state p {
-  font-size: 16px;
-}
-
-.empty-state span {
-  font-size: 13px;
-}
-
-/* Contacts */
-.contacts-list {
-  flex: 1;
-  overflow-y: auto;
-}
-
-.contact-item {
-  display: flex;
-  align-items: center;
-  padding: 12px 16px;
-  cursor: pointer;
-  transition: background 0.2s;
-  gap: 12px;
-  border-bottom: 1px solid var(--border);
-}
-
-.contact-item:hover {
-  background: var(--bg-secondary);
-}
-
-.contact-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: var(--bg-input);
-}
-
-.contact-info {
-  flex: 1;
-}
-
-.contact-name {
-  font-weight: 500;
-  font-size: 15px;
-  margin-bottom: 2px;
-}
-
-.contact-status {
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-.contact-status.online {
-  color: var(--green);
-}
-
-/* Chat Header */
 .chat-header {
-  display: flex;
-  align-items: center;
-  padding: 10px 12px;
-  background: var(--bg);
-  border-bottom: 1px solid var(--border);
-  gap: 8px;
+  display: flex; align-items: center;
+  padding: 12px 16px; gap: 12px;
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.chat-header-logo { width: 36px; height: 36px; }
+.chat-header-info { flex: 1; }
+.chat-header-title { font-size: 16px; font-weight: 700; }
+.chat-header-status { font-size: 11px; color: var(--dim); }
+.chat-header-my {
+  font-size: 12px; color: var(--accent2);
+  padding: 4px 10px; border-radius: 8px;
+  background: rgba(123,94,167,0.15);
 }
 
-.chat-header-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 1;
+.chat-body {
+  flex: 1; overflow-y: auto; padding: 16px;
+  display: flex; gap: 16px;
 }
 
-.chat-header-info img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: var(--bg-input);
+.chat-messages {
+  flex: 1; display: flex; flex-direction: column; gap: 8px;
+  min-width: 0;
+}
+.chat-msg {
+  background: var(--bg2); border-radius: 12px;
+  padding: 10px 14px; max-width: 85%;
+  animation: fadeUp 0.3s ease;
+}
+.chat-msg.mine {
+  background: linear-gradient(135deg, var(--accent), #6d28d9);
+  align-self: flex-end; margin-left: auto;
+}
+.chat-msg-login {
+  font-size: 11px; color: var(--accent2); margin-bottom: 2px;
+  font-weight: 600;
+}
+.chat-msg.mine .chat-msg-login { color: rgba(255,255,255,0.7); }
+.chat-msg-text {
+  font-size: 14px; line-height: 1.5; word-break: break-word;
+}
+.chat-msg-time {
+  font-size: 10px; color: var(--dim); margin-top: 4px; text-align: right;
+}
+.chat-msg.mine .chat-msg-time { color: rgba(255,255,255,0.5); }
+.chat-empty {
+  text-align: center; color: var(--dim); font-size: 13px;
+  margin: auto; padding: 40px; line-height: 1.6;
 }
 
-.chat-header-info h3 {
-  font-size: 15px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.chat-people {
+  width: 140px; flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  padding: 12px; overflow-y: auto;
+}
+.chat-people-title {
+  font-size: 11px; color: var(--dim);
+  text-transform: uppercase; letter-spacing: 2px;
+  margin-bottom: 10px;
+}
+.chat-person {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 0; font-size: 13px;
+}
+.chat-person-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--dim); flex-shrink: 0;
+}
+.chat-person-dot.on { background: var(--success); box-shadow: 0 0 6px rgba(34,197,94,0.5); }
+.chat-person-nick { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.chat-input-bar {
+  padding: 10px 16px; gap: 10px;
+  background: var(--bg2); border-top: 1px solid var(--border);
+  display: flex; flex-shrink: 0;
+}
+.chat-input-bar input {
+  flex: 1; padding: 12px 16px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--text);
+  font-size: 14px; font-family: inherit; outline: none;
+}
+.chat-input-bar input:focus { border-color: var(--accent2); }
+.chat-send {
+  padding: 12px 20px; border: none; border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff; font-size: 14px; font-weight: 700;
+  cursor: pointer;
+}
+.chat-send:active { transform: scale(0.95); }
+
+/* ── footer ── */
+.page-footer {
+  padding: 24px 20px 16px; text-align: center;
+  color: var(--dim); font-size: 11px; line-height: 1.8;
+}
+.page-footer .date-line {
+  color: var(--accent2); font-size: 12px; font-weight: 600;
+}
+.page-footer a {
+  color: var(--accent2); text-decoration: none;
+  border-bottom: 1px solid var(--accent2);
 }
 
-#chat-status {
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-#chat-status.online {
-  color: var(--green);
-}
-
-/* Messages */
-.messages-container {
-  flex: 1;
-  overflow-y: auto;
-  background: var(--bg-chat);
-  padding: 16px;
-}
-
-.messages-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.message {
-  max-width: 70%;
-  padding: 8px 12px;
-  border-radius: 12px;
-  font-size: 14px;
-  line-height: 1.4;
-  position: relative;
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+/* ── animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.message.out {
-  align-self: flex-end;
-  background: var(--bg-message-out);
-  border-bottom-right-radius: 4px;
+/* ── ban ── */
+.ban-overlay {
+  display: none; position: fixed; inset: 0; z-index: 800;
+  background: rgba(10,10,26,0.95);
+  flex-direction: column; align-items: center; justify-content: center;
+  padding: 32px; text-align: center;
 }
-
-.message.in {
-  align-self: flex-start;
-  background: var(--bg-message-in);
-  border-bottom-left-radius: 4px;
+.ban-overlay.active { display: flex; }
+.ban-icon { font-size: 60px; margin-bottom: 16px; }
+.ban-title { font-size: 22px; font-weight: 700; color: var(--danger); margin-bottom: 8px; }
+.ban-reason { font-size: 14px; color: var(--dim); margin-bottom: 24px; }
+.ban-btn {
+  padding: 12px 28px; border: 1px solid var(--border); border-radius: 10px;
+  background: transparent; color: var(--text); cursor: pointer; font-size: 14px;
 }
+.ban-btn:active { background: var(--bg2); }
 
-.message-text {
-  word-wrap: break-word;
+/* mobile people toggle */
+.people-toggle {
+  display: none; position: fixed; bottom: 70px; right: 14px; z-index: 50;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--accent); border: none; color: #fff;
+  font-size: 18px; cursor: pointer;
+  box-shadow: 0 2px 12px var(--glow);
 }
-
-.message-time {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.5);
-  margin-top: 4px;
-  text-align: right;
+@media (max-width: 600px) {
+  .chat-people { display: none; position: fixed; right: 0; top: 0; bottom: 0; z-index: 60; background: var(--bg2); width: 180px; border-left: 1px solid var(--border); }
+  .chat-people.show { display: block; }
+  .people-toggle { display: flex; align-items: center; justify-content: center; }
+  .chat-body { flex-direction: column; }
 }
-
-.message.out .message-time::after {
-  content: ' ✓';
-}
-
-.message.out.read .message-time::after {
-  content: ' ✓✓';
-  color: var(--primary);
-}
-
-.typing-indicator {
-  display: none;
-  align-self: flex-start;
-  padding: 12px 16px;
-  background: var(--bg-message-in);
-  border-radius: 12px;
-  border-bottom-left-radius: 4px;
-}
-
-.typing-indicator.show {
-  display: block;
-}
-
-.typing-dots {
-  display: flex;
-  gap: 4px;
-}
-
-.typing-dots span {
-  width: 6px;
-  height: 6px;
-  background: var(--text-secondary);
-  border-radius: 50%;
-  animation: typing 1.4s infinite ease-in-out;
-}
-
-.typing-dots span:nth-child(1) { animation-delay: 0s; }
-.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes typing {
-  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-  30% { transform: translateY(-4px); opacity: 1; }
-}
-
-/* Message Input */
-.message-input-area {
-  display: flex;
-  align-items: center;
-  padding: 10px 12px;
-  background: var(--bg);
-  border-top: 1px solid var(--border);
-  gap: 8px;
-}
-
-#message-input {
-  flex: 1;
-  background: var(--bg-input);
-  border: none;
-  padding: 12px 16px;
-  border-radius: 24px;
-  font-size: 14px;
-  color: var(--text);
-  outline: none;
-}
-
-#message-input:focus {
-  box-shadow: 0 0 0 1px var(--primary);
-}
-
-.send-btn {
-  background: var(--primary) !important;
-  color: white !important;
-}
-
-.send-btn:hover {
-  background: var(--primary-dark) !important;
-}
-
-/* Profile */
-.profile-content {
-  flex: 1;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
-}
-
-.profile-avatar-container {
-  position: relative;
-}
-
-.profile-avatar {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: var(--bg-input);
-  border: 4px solid var(--primary);
-}
-
-.profile-info {
-  width: 100%;
-  max-width: 400px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.profile-field {
-  background: var(--bg-secondary);
-  padding: 16px;
-  border-radius: 12px;
-}
-
-.profile-field label {
-  display: block;
-  font-size: 12px;
-  color: var(--primary);
-  margin-bottom: 4px;
-}
-
-.profile-field span {
-  font-size: 15px;
-}
-
-.btn-danger {
-  width: 100%;
-  max-width: 400px;
-  background: var(--danger);
-  color: white;
-  border: none;
-  padding: 14px 24px;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin-top: auto;
-}
-
-.btn-danger:hover {
-  opacity: 0.9;
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-.hidden { display: none !important; }
-
-.search-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 12px 16px 4px;
-  padding: 10px 14px;
-  background: var(--card);
-  border-radius: 12px;
-}
-
-.search-bar-icon {
-  width: 18px;
-  height: 18px;
-  color: var(--text-secondary);
-  flex-shrink: 0;
-}
-
-.search-bar input {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  background: transparent;
-  color: var(--text);
-  font-size: 15px;
-  outline: none;
-}
-
-.contacts-empty {
-  text-align: center;
-  color: var(--text-secondary);
-  padding: 32px 20px;
-  font-size: 14px;
-}
-
-.username-input-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--card);
-  border-radius: 12px;
-  padding: 0 14px;
-  margin-bottom: 12px;
-}
-
-.username-at {
-  color: var(--primary);
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.username-input-group input {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  background: transparent;
-  color: var(--text);
-  font-size: 16px;
-  padding: 14px 0;
-  outline: none;
-}
-
-.profile-username {
-  font-size: 14px;
-  color: var(--primary);
-  font-weight: 400;
-  margin-top: 4px;
-}
-
-.auth-container {
-    padding: 30px 20px;
-  }
-  
-  .message {
-    max-width: 85%;
-  }
-}
-
-/* Ban Screen */
-#ban-screen { align-items: center; justify-content: center; }
-.ban-content { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 40px 24px; text-align: center; gap: 10px; }
-.ban-icon { font-size: 64px; line-height: 1; }
-.ban-content h1 { font-size: 24px; font-weight: 700; }
-.ban-duration { color: var(--primary); font-weight: 700; font-size: 16px; }
-.ban-box { background: var(--bg-input); border-radius: 12px; padding: 14px 18px; max-width: 340px; width: 100%; margin-top: 6px; }
-.ban-reason-label { color: var(--text-secondary); font-size: 12px; margin-bottom: 4px; }
-.ban-reason { font-size: 15px; line-height: 1.4; }
-.ban-hint { color: var(--text-secondary); font-size: 13px; line-height: 1.5; }
-.ban-content a { color: var(--primary); text-decoration: none; }
-.ban-content .btn-primary { max-width: 280px; margin-top: 12px; }
-.ban-content .ban-ok-btn { max-width: 280px; margin-top: 8px; }
-.ban-content .btn-secondary { background: var(--bg-input); color: var(--text-primary); }
-
-  </style>
+</style>
 </head>
 <body>
-<!-- Auth Screen -->
-  <div id="auth-screen" class="screen active">
-    <div class="auth-container">
-      <div class="auth-logo">
-        <div class="logo-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-          </svg>
-        </div>
-        <h1>MillyGram</h1>
-        <p>Быстрый и безопасный мессенджер</p>
-      </div>
 
-      <div class="auth-error" id="auth-error"></div>
+<!-- splash -->
+<div id="splash">
+  <svg class="splash-logo" viewBox="0 0 100 100">
+    <defs>
+      <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#a78bfa"/>
+        <stop offset="100%" stop-color="#7b5ea7"/>
+      </linearGradient>
+    </defs>
+    <circle cx="50" cy="50" r="42" fill="none" stroke="url(#g1)" stroke-width="3" opacity="0.3"/>
+    <circle cx="50" cy="50" r="42" fill="none" stroke="url(#g1)" stroke-width="3"
+      stroke-dasharray="60 200" stroke-linecap="round">
+      <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="1.5s" repeatCount="indefinite"/>
+    </circle>
+    <text x="50" y="56" text-anchor="middle" font-size="24" font-weight="900" fill="url(#g1)" font-family="Inter,sans-serif">M</text>
+  </svg>
+  <div class="splash-title">MILLYGRAM</div>
+  <div class="splash-sub">загрузка</div>
+  <div class="splash-dots"><span></span><span></span><span></span></div>
+</div>
 
-      <!-- Step 1: Phone -->
-      <div id="auth-step1" class="auth-step active">
-        <h2>Введите номер телефона</h2>
-        <p class="auth-subtitle">Мы отправим вам код подтверждения</p>
-        <div class="phone-input-group">
-          <button type="button" class="country-field" id="country-field" onclick="openCountryPicker()">
-            <span class="country-flag" id="country-flag">🇷🇺</span>
-            <span class="country-code" id="country-code">+7</span>
-            <svg class="country-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="m6 9 6 6 6-6"/>
-            </svg>
-          </button>
-          <input type="tel" id="phone-input" placeholder="(999) 123-45-67">
-        </div>
-        <button id="send-code-btn" class="btn-primary" onclick="requestCode()">Далее</button>
-      </div>
+<!-- auth -->
+<div id="auth-screen">
+  <svg class="auth-logo" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="42" fill="none" stroke="var(--accent)" stroke-width="2.5" opacity="0.4"/>
+    <text x="50" y="56" text-anchor="middle" font-size="24" font-weight="900" fill="var(--accent2)" font-family="Inter,sans-serif">M</text>
+  </svg>
+  <div class="auth-title">MillyGram</div>
+  <div class="auth-mystery">таинственный мир общения</div>
 
-      <!-- Step 2: Code -->
-      <div id="auth-step2" class="auth-step">
-        <h2>Код подтверждения</h2>
-        <p class="auth-subtitle">Введите 6-значный код из SMS</p>
-        <div class="code-display" id="debug-code"></div>
-        <div class="code-inputs">
-          <input type="text" maxlength="1" class="code-digit" data-index="0">
-          <input type="text" maxlength="1" class="code-digit" data-index="1">
-          <input type="text" maxlength="1" class="code-digit" data-index="2">
-          <input type="text" maxlength="1" class="code-digit" data-index="3">
-          <input type="text" maxlength="1" class="code-digit" data-index="4">
-          <input type="text" maxlength="1" class="code-digit" data-index="5">
-        </div>
-        <button id="verify-btn" class="btn-primary" onclick="verifyCode()">Подтвердить</button>
-        <button class="btn-text" onclick="showStep1()">Изменить номер</button>
-      </div>
-
-      <!-- Step 3: Name -->
-      <div id="auth-step3" class="auth-step">
-        <h2>Как вас зовут?</h2>
-        <p class="auth-subtitle">Это имя будут видеть ваши контакты</p>
-        <input type="text" id="name-input" placeholder="Ваше имя" maxlength="30" onkeydown="if(event.key==='Enter')showStep4()">
-        <button class="btn-primary" onclick="showStep4()">Далее</button>
-      </div>
-
-      <!-- Step 4: Username -->
-      <div id="auth-step4" class="auth-step">
-        <h2>Ваш username</h2>
-        <p class="auth-subtitle">По нему вас можно будет найти в поиске (как @telegram)</p>
-        <div class="username-input-group">
-          <span class="username-at">@</span>
-          <input type="text" id="username-input" placeholder="username" maxlength="30" autocomplete="off" onkeydown="if(event.key==='Enter')register()">
-        </div>
-        <button class="btn-primary" onclick="register()">Начать</button>
-        <button class="btn-text" onclick="showStep3()">Назад</button>
-      </div>
-
-      <!-- Step 5: Cloud password (protected accounts) -->
-      <div id="auth-step5" class="auth-step">
-        <h2>Облачный пароль</h2>
-        <p class="auth-subtitle">Введите облачный пароль, чтобы войти в аккаунт</p>
-        <input type="password" id="cloud-password-input" placeholder="Облачный пароль" autocomplete="off" onkeydown="if(event.key==='Enter')verifyCloudPassword()">
-        <button class="btn-primary" onclick="verifyCloudPassword()">Войти</button>
-        <button class="btn-text" onclick="showStep2()">Назад</button>
-      </div>
-
-      <!-- Step 6: Access code (new number, bought in the bot) -->
-      <div id="auth-step6" class="auth-step">
-        <h2>Код доступа</h2>
-        <p class="auth-subtitle" id="access-code-hint">Этот номер ещё не зарегистрирован</p>
-        <input type="text" id="access-code-input" placeholder="MG-N-XXXXXX" autocomplete="off" maxlength="11" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')verifyAccessCode()">
-        <button class="btn-primary" onclick="verifyAccessCode()">Активировать</button>
-        <button class="btn-text" onclick="showStep1()">Изменить номер</button>
-      </div>
-    </div>
+  <div class="auth-tabs">
+    <button class="auth-tab active" onclick="showTab('login')">Вход</button>
+    <button class="auth-tab" onclick="showTab('register')">Регистрация</button>
   </div>
 
-  <!-- Country Picker Modal -->
-  <div id="country-picker" class="country-picker hidden">
-    <div class="country-sheet">
-      <div class="country-sheet-header">
-        <button type="button" class="btn-icon" onclick="closeCountryPicker()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m15 18-6-6 6-6"/>
-          </svg>
-        </button>
-        <h2>Выберите страну</h2>
-      </div>
-      <input type="text" id="country-search" class="country-search" placeholder="Поиск" oninput="filterCountries(this.value)">
-      <div id="country-list" class="country-list"></div>
-    </div>
-  </div>
+  <div id="auth-error" class="auth-error"></div>
 
-  <!-- MillyNotifications Welcome Screen -->
-  <div id="welcome-screen" class="screen">
-    <div class="welcome-content">
-      <div class="welcome-logo">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-        </svg>
-      </div>
-      <h1 id="welcome-title">Добро пожаловать в MillyGram!</h1>
-      <p>Твои чаты уже ждут. Быстрые сообщения в стиле Telegram — всё под рукой.</p>
-      <div class="welcome-tip">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 8v4l3 3"/>
-          <circle cx="12" cy="12" r="9"/>
-        </svg>
-        <span>Если выйдешь из аккаунта — твой прогресс не потеряется</span>
-      </div>
-      <button class="btn-primary" onclick="welcomeToChats()">В чаты 🚀</button>
+  <!-- login form -->
+  <form id="login-form" class="auth-form active" onsubmit="return doLogin(event)">
+    <div class="auth-field">
+      <input type="text" id="login-user" placeholder="Логин" autocomplete="username" required>
     </div>
-  </div>
+    <div class="auth-field">
+      <input type="password" id="login-pass" placeholder="Пароль" autocomplete="current-password" required>
+    </div>
+    <button type="submit" class="auth-btn">Войти</button>
+  </form>
 
-  <!-- Chat List Screen -->
-  <div id="chatlist-screen" class="screen">
-    <div class="app-header">
-      <div class="header-left">
-        <button class="btn-icon" onclick="showProfile()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-            <circle cx="12" cy="7" r="4"/>
-          </svg>
-        </button>
-        <h1>MillyGram</h1>
-      </div>
-      <button class="btn-icon" onclick="searchUsers()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"/>
-          <path d="m21 21-4.35-4.35"/>
-        </svg>
-      </button>
+  <!-- register form -->
+  <form id="register-form" class="auth-form" onsubmit="return doRegister(event)">
+    <div class="auth-field">
+      <input type="text" id="reg-user" placeholder="Придумай логин (3-20 символов)" autocomplete="username" required>
     </div>
-    <div id="chat-list" class="chat-list"></div>
-    <div id="empty-state" class="empty-state">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-      </svg>
-      <p>Нет активных чатов</p>
-      <span>Начните общение, выбрав контакт</span>
+    <div class="auth-field">
+      <input type="text" id="reg-nick" placeholder="Никнейм (как тебя будут звать)" autocomplete="nickname">
     </div>
-  </div>
+    <div class="auth-field">
+      <input type="password" id="reg-pass" placeholder="Пароль (минимум 6 символов)" autocomplete="new-password" required minlength="6">
+    </div>
+    <div class="auth-field">
+      <input type="text" id="reg-invite" placeholder="Код приглашения" autocomplete="off" required
+        style="text-transform:uppercase; letter-spacing:2px; text-align:center; font-weight:600;">
+    </div>
+    <button type="submit" class="auth-btn">Создать аккаунт</button>
+    <div class="auth-hint">Без кода приглашения регистрация невозможна.<br>Попроси друга или создателя MillyGram.</div>
+  </form>
 
-  <!-- Contacts Screen -->
-  <div id="contacts-screen" class="screen">
-    <div class="app-header">
-      <div class="header-left">
-        <button class="btn-icon" onclick="showChatList()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m15 18-6-6 6-6"/>
-          </svg>
-        </button>
-        <h1>Контакты</h1>
-      </div>
+  <div class="page-footer">
+    <div class="date-line">14.07.2026 — наш сайт вышел</div>
+    <div>дождитесь финала</div>
+    <div style="margin-top:8px">
+      <a href="#chat-section" id="footer-chat-link" style="display:none" onclick="enterChat()">общаться по чату →</a>
     </div>
-    <div class="search-bar">
-      <svg class="search-bar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/>
-        <path d="m21 21-4.35-4.35"/>
-      </svg>
-      <input type="text" id="search-input" placeholder="Поиск по имени или @username..." autocomplete="off" oninput="renderContactsFiltered()">
-    </div>
-    <div id="contacts-list" class="contacts-list"></div>
-  </div>
-
-  <!-- Chat Screen -->
-  <div id="chat-screen" class="screen">
-    <div class="chat-header">
-      <button class="btn-icon" onclick="showChatList()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="m15 18-6-6 6-6"/>
-        </svg>
-      </button>
-      <div class="chat-header-info" id="chat-header-info">
-        <img id="chat-avatar" src="" alt="">
-        <div>
-          <h3 id="chat-name"></h3>
-          <span id="chat-status">в сети</span>
-        </div>
-      </div>
-    </div>
-    <div id="messages-container" class="messages-container">
-      <div id="messages-list" class="messages-list"></div>
-    </div>
-    <div class="message-input-area">
-      <button class="btn-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-        </svg>
-      </button>
-      <input type="text" id="message-input" placeholder="Сообщение..." onkeydown="handleMessageKey(event)">
-      <button class="btn-icon send-btn" onclick="sendMessage()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="22" y1="2" x2="11" y2="13"/>
-          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-        </svg>
-      </button>
-    </div>
-  </div>
-
-  <!-- Profile Screen -->
-  <div id="profile-screen" class="screen">
-    <div class="app-header">
-      <div class="header-left">
-        <button class="btn-icon" onclick="showChatList()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m15 18-6-6 6-6"/>
-          </svg>
-        </button>
-        <h1>Профиль</h1>
-      </div>
-      <button class="btn-icon" onclick="showSettings()" title="Настройки">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-        </svg>
-      </button>
-    </div>
-    <div class="profile-content">
-      <div class="profile-avatar-container" onclick="openPhotoPicker()">
-        <img id="profile-avatar" src="" alt="" class="profile-avatar">
-        <div class="avatar-edit-badge">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-            <circle cx="12" cy="13" r="4"/>
-          </svg>
-        </div>
-      </div>
-      <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="onPhotoPicked(event)">
-      <div class="profile-verified-row" id="profile-verified-row">
-        <span class="verified-badge verified-badge-lg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span>
-        <span>Подтверждён</span>
-      </div>
-      <div class="profile-info">
-        <div class="profile-field">
-          <label>Имя</label>
-          <span id="profile-name"></span>
-        </div>
-        <div class="profile-field">
-          <label>Телефон</label>
-          <span id="profile-phone"></span>
-        </div>
-      </div>
-      <button class="btn-danger" onclick="logout()">Выйти</button>
-    </div>
-  </div>
-
-  <!-- Settings Screen -->
-  <div id="settings-screen" class="screen">
-    <div class="app-header">
-      <div class="header-left">
-        <button class="btn-icon" onclick="showProfile()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m15 18-6-6 6-6"/>
-          </svg>
-        </button>
-        <h1>Настройки</h1>
-      </div>
-    </div>
-    <div class="settings-list">
-      <div class="settings-panel">
-        <div class="settings-item" onclick="showPremium()">
-          <div class="settings-item-icon premium-icon">💎</div>
-          <div class="settings-item-info">
-            <div class="settings-item-title">Premium</div>
-            <div class="settings-item-subtitle" id="premium-item-subtitle">Активировать Premium в MillyGram</div>
-          </div>
-          <svg class="settings-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m9 18 6-6-6-6"/>
-          </svg>
-        </div>
-        <div class="settings-item" onclick="showSecurity()">
-          <div class="settings-item-icon security-icon">🔒</div>
-          <div class="settings-item-info">
-            <div class="settings-item-title">Безопасность</div>
-            <div class="settings-item-subtitle">Облачный пароль аккаунта</div>
-          </div>
-          <svg class="settings-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m9 18 6-6-6-6"/>
-          </svg>
-        </div>
-        <div class="settings-item" onclick="showStars()">
-          <div class="settings-item-icon stars-icon">⭐</div>
-          <div class="settings-item-info">
-            <div class="settings-item-title">MillyStars</div>
-            <div class="settings-item-subtitle" id="stars-item-subtitle">Баланс: 0 ⭐</div>
-          </div>
-          <svg class="settings-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m9 18 6-6-6-6"/>
-          </svg>
-        </div>
-        <div class="settings-item" onclick="showNumbers()">
-          <div class="settings-item-icon number-icon">📱</div>
-          <div class="settings-item-info">
-            <div class="settings-item-title">Номер</div>
-            <div class="settings-item-subtitle">Купить номер из любой страны в боте</div>
-          </div>
-          <svg class="settings-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m9 18 6-6-6-6"/>
-          </svg>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Premium Screen -->
-  <div id="premium-screen" class="screen">
-    <div class="app-header">
-      <div class="header-left">
-        <button class="btn-icon" onclick="showSettings()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m15 18-6-6 6-6"/>
-          </svg>
-        </button>
-        <h1>Premium</h1>
-      </div>
-    </div>
-    <div class="premium-content">
-      <div class="premium-hero">
-        <div class="premium-hero-icon">💎</div>
-        <h2>Premium в MillyGram</h2>
-        <p>Платиновый статус аккаунта — как в Telegram. Чтобы получить Premium, нужен код активации.</p>
-      </div>
-
-      <div id="premium-active" class="premium-active hidden">
-        <div class="premium-active-badge">⭐ Premium активен</div>
-        <p>Твой аккаунт MillyGram теперь со статусом Premium.</p>
-      </div>
-
-      <div id="premium-not-active">
-        <div class="premium-buy-info">
-          <p><b>Как получить код:</b></p>
-          <ol>
-            <li>Открой бота магазина <b>@MillyGramShop_bot</b></li>
-            <li>Нажми <b>💎 Premium</b></li>
-            <li>Получи код активации (формат <code>MG-XXXXXX</code>)</li>
-          </ol>
-        </div>
-        <input type="text" id="premium-code-input" placeholder="MG-XXXXXX" autocomplete="off">
-        <button class="btn-primary" onclick="activatePremium()">Активировать</button>
-        <div class="auth-error" id="premium-error"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Security Screen -->
-  <div id="security-screen" class="screen">
-    <div class="app-header">
-      <div class="header-left">
-        <button class="btn-icon" onclick="showSettings()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m15 18-6-6 6-6"/>
-          </svg>
-        </button>
-        <h1>Безопасность</h1>
-      </div>
-    </div>
-    <div class="premium-content">
-      <div class="premium-hero">
-        <div class="premium-hero-icon">🔒</div>
-        <h2>Облачный пароль</h2>
-        <p>Придумай код — он сохранится на сервере, и при повторном входе аккаунт будет открываться только после ввода этого пароля.</p>
-      </div>
-
-      <div class="premium-buy-info">
-        <p id="security-status">Облачный пароль не установлен</p>
-      </div>
-
-      <div class="security-set" id="security-set-block">
-        <input type="password" id="cloud-pw-input" placeholder="Новый облачный пароль (мин. 4)" autocomplete="off">
-        <input type="password" id="cloud-pw-input2" placeholder="Повторите пароль" autocomplete="off">
-        <button class="btn-primary" onclick="saveCloudPassword()">Сохранить</button>
-        <div class="auth-error" id="cloud-pw-error"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MillyStars Screen -->
-  <div id="stars-screen" class="screen">
-    <div class="app-header">
-      <div class="header-left">
-        <button class="btn-icon" onclick="showSettings()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m15 18-6-6 6-6"/>
-          </svg>
-        </button>
-        <h1>MillyStars</h1>
-      </div>
-    </div>
-    <div class="premium-content">
-      <div class="premium-hero">
-        <div class="premium-hero-icon stars-icon">⭐</div>
-        <div class="stars-balance">
-          <span class="stars-balance-value" id="stars-balance">0</span>
-          <span class="stars-balance-label">звёзд</span>
-        </div>
-        <p>Пополняй баланс звёзд и трать их внутри MillyGram.</p>
-      </div>
-
-      <div class="premium-buy-info">
-        <p>Как пополнить: открой бота <b>@MillyGramShop_bot</b> → <b>⭐ MillyStars</b> → выбери пакет, получи код и введи его ниже.</p>
-      </div>
-
-      <div class="security-set" id="stars-redeem-block">
-        <input type="text" id="stars-code-input" placeholder="Код пополнения, например MG-S-123456" autocomplete="off" spellcheck="false">
-        <button class="btn-primary" onclick="redeemStarCode()">Активировать</button>
-        <div class="auth-error" id="stars-code-error"></div>
-        <p class="stars-success" id="stars-code-success"></p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Numbers Screen -->
-  <div id="numbers-screen" class="screen">
-    <div class="app-header">
-      <div class="header-left">
-        <button class="btn-icon" onclick="showSettings()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="m15 18-6-6 6-6"/>
-          </svg>
-        </button>
-        <h1>Номер</h1>
-      </div>
-    </div>
-    <div class="premium-content">
-      <div class="premium-hero">
-        <div class="premium-hero-icon number-icon">📱</div>
-        <h2>Номер</h2>
-        <p>Купи номер в боте <b>@MillyGramShop_bot</b> → получи код → введи его ниже, чтобы активировать.</p>
-      </div>
-
-      <div class="premium-buy-info">
-        <p>Выбери страну номера — купи его в боте, получи код и активируй здесь.</p>
-      </div>
-
-      <div class="number-redeem">
-        <p>🎟 Страна номера (выбери как в боте)</p>
-        <div class="number-choice" id="number-choice"></div>
-        <p class="number-redeem-label">🎟 Код из бота</p>
-        <input type="text" id="number-code-input" placeholder="MG-N-XXXXXX" autocomplete="off" spellcheck="false" oninput="clearNumberInputError()">
-        <button class="btn-primary" onclick="redeemNumberCode()">Активировать</button>
-        <div class="auth-error" id="number-error"></div>
-        <div class="number-result" id="number-result" style="display:none">
-          <p>🎉 Номер активирован!</p>
-          <p class="number-result-phone">Твой номер теперь: <b id="number-result-phone"></b></p>
-        </div>
-      </div>
-    </div>
-  </div>
-<!-- Ban Screen -->
-<div id="ban-screen" class="screen">
-  <div class="ban-content">
-    <div class="ban-icon">🚫</div>
-    <h1>Вы заблокированы</h1>
-    <p class="ban-duration" id="ban-duration">на 14 дней</p>
-    <div class="ban-box">
-      <p class="ban-reason-label">Причина</p>
-      <p class="ban-reason" id="ban-reason">Нарушение правил сообщества</p>
-    </div>
-    <p class="ban-hint">Блокировка снимется автоматически: <span id="ban-until">⏳</span></p>
-    <p class="ban-hint">Есть вопрос? Напиши поддержке: <a href="https://t.me/MillyBanned_bot">@MillyBanned_bot</a></p>
-    <button class="btn-primary" onclick="banPollTimer()">Проверить доступ</button>
-    <button class="btn-secondary ban-ok-btn" onclick="bannedOk()">Понятно</button>
   </div>
 </div>
-<script>
-let currentUser = null;
-let currentChat = null;
-let pollTimer = null;
 
-// Country config
-const COUNTRIES = [
-  { code: '7',   name: 'Россия',        flag: '🇷🇺', digits: 10 },
-  { code: '222', name: 'Планета +222',   flag: '🌍', digits: 8 },
-  { code: '380', name: 'Украина',        flag: '🇺🇦', digits: 9 },
-  { code: '375', name: 'Беларусь',       flag: '🇧🇾', digits: 9 },
-  { code: '77',  name: 'Казахстан',      flag: '🇰🇿', digits: 10 },
-  { code: '994', name: 'Азербайджан',    flag: '🇦🇿', digits: 9 },
-  { code: '995', name: 'Грузия',         flag: '🇬🇪', digits: 9 },
-  { code: '374', name: 'Армения',        flag: '🇦🇲', digits: 8 },
-  { code: '373', name: 'Молдова',        flag: '🇲🇩', digits: 8 },
-  { code: '996', name: 'Кыргызстан',     flag: '🇰🇬', digits: 9 },
-  { code: '992', name: 'Таджикистан',    flag: '🇹🇯', digits: 9 },
-  { code: '998', name: 'Узбекистан',     flag: '🇺🇿', digits: 9 },
-  { code: '1',   name: 'США',            flag: '🇺🇸', digits: 10 },
-  { code: '44',  name: 'Великобритания', flag: '🇬🇧', digits: 10 },
-  { code: '49',  name: 'Германия',       flag: '🇩🇪', digits: 10 },
-  { code: '33',  name: 'Франция',        flag: '🇫🇷', digits: 9 },
-  { code: '39',  name: 'Италия',         flag: '🇮🇹', digits: 10 }
-];
+<!-- ban overlay -->
+<div class="ban-overlay" id="ban-screen">
+  <div class="ban-icon">🚫</div>
+  <div class="ban-title">Доступ запрещён</div>
+  <div class="ban-reason" id="ban-reason-text">Аккаунт заблокирован</div>
+  <div class="ban-reason" id="ban-duration-text"></div>
+  <button class="ban-btn" onclick="location.reload()">Попробовать позже</button>
+</div>
 
-let currentCountry = COUNTRIES[0];
-
-function getCountry() {
-  return currentCountry.code;
-}
-
-function getCountryDigits() {
-  return currentCountry.digits;
-}
-
-function updateCountryField() {
-  const field = document.getElementById('country-field');
-  document.getElementById('country-flag').textContent = currentCountry.flag;
-  document.getElementById('country-code').textContent = '+' + currentCountry.code;
-}
-
-function selectCountry(c) {
-  currentCountry = c;
-  updateCountryField();
-  const input = document.getElementById('phone-input');
-  input.value = formatPhone(input.value);
-  input.placeholder = c.code === '380' ? '(99) 123-45-67' : c.code === '7' ? '(999) 123-45-67' : c.code === '222' ? '123 456 78' : '123 456 789';
-  closeCountryPicker();
-  input.focus();
-}
-
-function openCountryPicker() {
-  document.getElementById('country-picker').classList.remove('hidden');
-  renderCountryList(COUNTRIES);
-  document.getElementById('country-search').value = '';
-  document.getElementById('country-search').focus();
-}
-
-function closeCountryPicker() {
-  document.getElementById('country-picker').classList.add('hidden');
-}
-
-function filterCountries(query) {
-  const q = query.toLowerCase().trim();
-  const filtered = COUNTRIES.filter(c =>
-    c.name.toLowerCase().includes(q) || c.code.includes(q.replace(/[^\d]/g, ''))
-  );
-  renderCountryList(filtered);
-}
-
-function renderCountryList(list) {
-  const el = document.getElementById('country-list');
-  el.innerHTML = list.length ? list.map(c => `
-    <div class="country-item" onclick="selectCountry(getCountryByCode('${c.code}'))">
-      <span class="country-item-flag">${c.flag}</span>
-      <span class="country-item-name">${c.name}</span>
-      <span class="country-item-code">+${c.code}</span>
+<!-- chat -->
+<div id="chat-screen">
+  <div class="chat-header">
+    <svg class="chat-header-logo" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="42" fill="none" stroke="var(--accent)" stroke-width="2.5" opacity="0.4"/>
+      <text x="50" y="56" text-anchor="middle" font-size="24" font-weight="900" fill="var(--accent2)" font-family="Inter,sans-serif">M</text>
+    </svg>
+    <div class="chat-header-info">
+      <div class="chat-header-title">MillyGram</div>
+      <div class="chat-header-status" id="online-count">загрузка…</div>
     </div>
-  `).join('') : '<div class="country-list-empty">Ничего не найдено</div>';
+    <div class="chat-header-my" id="my-nick">—</div>
+  </div>
+
+  <div class="chat-body" id="chat-body">
+    <div class="chat-messages" id="chat-messages">
+      <div class="chat-empty">Тайные разговоры начинаются здесь…<br>Напиши первое сообщение ✨</div>
+    </div>
+    <div class="chat-people" id="chat-people">
+      <div class="chat-people-title">Онлайн</div>
+      <div id="people-list"></div>
+    </div>
+  </div>
+
+  <button class="people-toggle" id="people-toggle" onclick="document.getElementById('chat-people').classList.toggle('show')">👥</button>
+
+  <form class="chat-input-bar" onsubmit="return sendMessage(event)">
+    <input type="text" id="chat-input" placeholder="Написать сообщение…" maxlength="2000" autocomplete="off">
+    <button type="submit" class="chat-send">→</button>
+  </form>
+</div>
+
+<script>
+var SERVER = null;
+var GITHUB_BASE = 'https://zizksks150-dotcom.github.io/millygram';
+var token = null;
+var lastMsgId = 0;
+var pollTimer = null;
+var userNick = '';
+
+function getServer() {
+  if (SERVER) return Promise.resolve(SERVER);
+  var saved = null;
+  try { saved = localStorage.getItem('pg_server'); } catch(e) {}
+  if (saved) { SERVER = saved; return Promise.resolve(SERVER); }
+  return fetchServer().then(function() { return SERVER; });
 }
 
-function getCountryByCode(code) {
-  return COUNTRIES.find(c => c.code === code);
-}
-
-// Format national phone number
-function formatPhone(value) {
-  const nums = value.replace(/\D/g, '');
-  const max = getCountryDigits();
-  const c = getCountry();
-  let out = '';
-  for (let i = 0; i < nums.length && i < max; i++) {
-    if (c === '380' && i === 0) out += '(';
-    if (c === '380' && i === 2) out += ') ';
-    if (c === '380' && i === 5) out += '-';
-    if (c === '380' && i === 7) out += '-';
-    if (c === '7' && (i === 3 || i === 6)) out += '-';
-    if (c === '7' && i === 0) out += '(';
-    if (c === '7' && i === 3) out += ') ';
-    if (c !== '7' && c !== '380' && i !== 0 && i % 3 === 0) out += ' ';
-    out += nums[i];
-  }
-  return out;
-}
-
-// Full number with country code: 7XXXXXXXXXX or 380XXXXXXXX
-function fullPhone() {
-  return getCountry() + formatPhone(document.getElementById('phone-input').value).replace(/\D/g, '');
-}
-
-document.getElementById('phone-input').addEventListener('input', function() {
-  this.value = formatPhone(this.value);
-});
-
-// Code inputs auto-advance
-document.querySelectorAll('.code-digit').forEach((input, i, arr) => {
-  input.addEventListener('input', function() {
-    if (this.value && i < arr.length - 1) arr[i + 1].focus();
-  });
-  input.addEventListener('keydown', function(e) {
-    if (e.key === 'Backspace' && !this.value && i > 0) arr[i - 1].focus();
-  });
-});
-
-function showStep(n) {
-  hideError();
-  document.querySelectorAll('.auth-step').forEach(s => s.classList.remove('active'));
-  document.getElementById(`auth-step${n}`).classList.add('active');
-  document.getElementById('auth-screen').style.display = 'flex';
-}
-
-function showStep1() { showStep(1); }
-function showStep2() { showStep(2); }
-function showStep3() { showStep(3); }
-function showStep4() { showStep(4); }
-
-function showError(text) {
-  const el = document.getElementById('auth-error');
-  el.textContent = text;
-  el.classList.add('show');
-}
-
-function hideError() {
-  const el = document.getElementById('auth-error');
-  el.classList.remove('show');
-}
-
-// ─────────────────────────────────────────────
-// API layer: server first, offline local fallback
-// ─────────────────────────────────────────────
-let offlineMode = false;
-
-function lsGet(key, def) {
-  try { return JSON.parse(localStorage.getItem(key)) || def; } catch { return def; }
-}
-function lsSet(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
-function randHex(n) {
-  let s = '';
-  const chars = '0123456789abcdef';
-  for (let i = 0; i < n; i++) s += chars[Math.floor(Math.random() * 16)];
-  return s;
-}
-function localAvatar(phone) {
-  const seed = phone.replace(/\D/g, '').slice(0, 1) || 'M';
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" rx="100" fill="#2AABEE"/><text x="100" y="128" font-size="84" text-anchor="middle" fill="#fff" font-family="Arial">${seed}</text></svg>`;
-  return 'data:image/svg+xml;base64,' + btoa(svg).replace(/.{76}/g, '$&\n');
-}
-
-// Local-only backend (works when server is unreachable)
-async function localApi(path, options = {}) {
-  const token = ((options.headers || {}).Authorization) || '';
-  const body = options.body ? JSON.parse(options.body) : {};
-  const p = path;
-
-  if (p === '/api/auth/request-code' && options.method === 'POST') {
-    const phone = String(body.phone || '').replace(/\D/g, '');
-    if (!phone) return { error: 'Phone required' };
-    const users = lsGet('mg_offline_users', []);
-    const existing = users.find(u => u.phone === phone);
-    if (!existing) {
-      return { success: false, requiresActivation: true, message: 'Этот номер ещё не зарегистрирован. Введите код доступа из бота @MillyGramShop_bot.' };
+function fetchServer() {
+  return fetch(GITHUB_BASE + '/PUBLIC_URL.txt?_=' + Date.now(), {
+    mode: 'cors',
+    cache: 'no-store'
+  }).then(function(r) { return r.text(); }).then(function(t) {
+    var url = (t || '').trim();
+    if (url && url.indexOf('http') === 0) {
+      SERVER = url;
+      try { localStorage.setItem('pg_server', url); } catch(e) {}
     }
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const codes = lsGet('mg_offline_codes', []).filter(c => c.phone !== phone);
-    codes.push({ phone, code, created: Date.now() });
-    lsSet('mg_offline_codes', codes);
-    return { success: true, message: 'Code sent', debug_code: code };
-  }
-
-  if (p === '/api/auth/verify-access-code' && options.method === 'POST') {
-    const phone = String(body.phone || '').replace(/\D/g, '');
-    const code = String(body.code || '').trim().toUpperCase();
-    if (!/^MG-N-\d{6}$/.test(code)) return { error: 'Формат кода: MG-N-XXXXXX' };
-    const users = lsGet('mg_offline_users', []);
-    if (users.some(u => u.phone === phone)) return { error: 'Этот номер уже зарегистрирован' };
-    const user = {
-      id: randHex(8),
-      phone,
-      name: 'Пользователь',
-      username: '',
-      avatar: localAvatar(phone),
-      created: Date.now(),
-      online: true,
-      verified: false,
-      premium: false,
-      cloudHash: ''
-    };
-    users.push(user);
-    lsSet('mg_offline_users', users);
-    const t = randHex(32);
-    const sessions = lsGet('mg_offline_sessions', {});
-    sessions[t] = user.id;
-    lsSet('mg_offline_sessions', sessions);
-    return { success: true, token: t, user };
-  }
-
-  if (p === '/api/auth/verify-code' && options.method === 'POST') {
-    const phone = String(body.phone || '');
-    const code = String(body.code || '').trim();
-    const codes = lsGet('mg_offline_codes', []);
-    const stored = codes.find(c => c.phone === phone && c.code === code);
-    if (!stored) return { error: 'Invalid code' };
-    const users = lsGet('mg_offline_users', []);
-    let user = users.find(u => u.phone === phone);
-    if (!user && body.username) {
-      const uname = String(body.username).trim().replace(/^@/, '').toLowerCase();
-      if (!/^[a-z0-9_]{3,30}$/.test(uname)) return { error: 'Неверный username' };
-      if (users.some(u => (u.username || '').toLowerCase() === uname)) {
-        return { error: 'Этот username уже занят' };
-      }
-    }
-    if (!user) {
-      user = {
-        id: randHex(8),
-        phone,
-        name: 'Пользователь',
-        username: body.username ? String(body.username).trim().replace(/^@/, '').toLowerCase() : '',
-        avatar: localAvatar(phone),
-        created: Date.now(),
-        online: true,
-        verified: false,
-        premium: false,
-        cloudHash: ''
-      };
-      users.push(user);
-      lsSet('mg_offline_users', users);
-    } else {
-      if (body.name) {
-        user.name = String(body.name).trim();
-        user.verified = user.name.toLowerCase() === 'millygram';
-      }
-      if (body.username) user.username = String(body.username).trim().replace(/^@/, '').toLowerCase();
-      lsSet('mg_offline_users', users);
-    }
-    if (user.cloudHash && !body.password) {
-      const pt = randHex(32);
-      const sessions = lsGet('mg_offline_sessions', {});
-      sessions[pt] = user.id;
-      lsSet('mg_offline_sessions', sessions);
-      return { success: true, requiresPassword: true, token: pt };
-    }
-    const t = randHex(32);
-    const sessions = lsGet('mg_offline_sessions', {});
-    sessions[t] = user.id;
-    lsSet('mg_offline_sessions', sessions);
-    return { success: true, token: t, user };
-  }
-
-  if (p === '/api/auth/verify-password' && options.method === 'POST') {
-    const sessions = lsGet('mg_offline_sessions', {});
-    const users = lsGet('mg_offline_users', []);
-    const user = users.find(u => u.id === sessions[token]);
-    if (!user) return { error: 'Not authorized' };
-    if (!user.cloudHash || hashStr(String(body.password || '')) !== user.cloudHash) {
-      return { error: 'Неверный облачный пароль' };
-    }
-    return { success: true, token, user };
-  }
-
-  if (p === '/api/auth/set-password' && options.method === 'POST') {
-    const sessions = lsGet('mg_offline_sessions', {});
-    const users = lsGet('mg_offline_users', []);
-    const user = users.find(u => u.id === sessions[token]);
-    if (!user) return { error: 'Not authorized' };
-    const pw = String(body.password || '');
-    if (pw.length < 4) return { error: 'Пароль должен быть минимум 4 символа' };
-    user.cloudHash = hashStr(pw);
-    lsSet('mg_offline_users', users);
-    return { success: true, user };
-  }
-
-  if (p === '/api/auth/avatar' && options.method === 'POST') {
-    const sessions = lsGet('mg_offline_sessions', {});
-    const users = lsGet('mg_offline_users', []);
-    const user = users.find(u => u.id === sessions[token]);
-    if (!user) return { error: 'Not authorized' };
-    const avatar = String(body.avatar || '');
-    if (!avatar.startsWith('data:image/')) return { error: 'Invalid image' };
-    user.avatar = avatar;
-    lsSet('mg_offline_users', users);
-    return { success: true, user };
-  }
-
-  if (p === '/api/auth/confirm-name' && options.method === 'POST') {
-    const sessions = lsGet('mg_offline_sessions', {});
-    const users = lsGet('mg_offline_users', []);
-    const user = users.find(u => u.id === sessions[token]);
-    if (!user) return { error: 'Not authorized' };
-    const name = String(body.name || '').trim();
-    if (!name) return { error: 'Name required' };
-    user.name = name;
-    user.verified = name.toLowerCase() === 'millygram';
-    lsSet('mg_offline_users', users);
-    return { success: true, user };
-  }
-
-  if (p === '/api/auth/activate-premium' && options.method === 'POST') {
-    const sessions = lsGet('mg_offline_sessions', {});
-    const users = lsGet('mg_offline_users', []);
-    const user = users.find(u => u.id === sessions[token]);
-    if (!user) return { error: 'Not authorized' };
-    const code = String(body.code || '').trim().toUpperCase();
-    // Codes bought in the shop bot look like MG-XXXXXX and are valid here too.
-    if (!/^MG-\d{6}$/.test(code)) return { error: 'Invalid premium code' };
-    user.premium = true;
-    lsSet('mg_offline_users', users);
-    return { success: true, user };
-  }
-
-  if (p === '/api/auth/redeem-number-code' && options.method === 'POST') {
-    const sessions = lsGet('mg_offline_sessions', {});
-    const users = lsGet('mg_offline_users', []);
-    const user = users.find(u => u.id === sessions[token]);
-    if (!user) return { error: 'Not authorized' };
-    const code = String(body.code || '').trim().toUpperCase();
-    const wantNumber = String(body.number || '').trim();
-    const country = COUNTRIES.find(c => '+' + c.code === wantNumber);
-    if (!country) return { error: 'Выберите страну и номер из списка (Профиль → Настройки → Номер)' };
-    if (!/^MG-N-\d{6}$/.test(code)) return { error: 'Такого номера нет. Код выдаёт @MillyGramShop_bot' };
-    const number = wantNumber;
-    if (!Array.isArray(user.numbers)) user.numbers = [];
-    user.numbers.push({ number, code, at: Date.now() });
-    const newPhone = number + Array.from({ length: country.digits }, () => Math.floor(Math.random() * 10)).join('');
-    user.phone = newPhone;
-    lsSet('mg_offline_users', users);
-    return { success: true, number, phone: user.phone, code, user };
-  }
-
-  if (p === '/api/auth/buy-number' && options.method === 'POST') {
-    const sessions = lsGet('mg_offline_sessions', {});
-    const users = lsGet('mg_offline_users', []);
-    const user = users.find(u => u.id === sessions[token]);
-    if (!user) return { error: 'Not authorized' };
-    const number = String(body.number || '').trim();
-    const country = COUNTRIES.find(c => '+' + c.code === number);
-    const price = country ? (country.price || 25) : 0;
-    if (!price) return { error: 'Выберите страну из списка' };
-    const stars = user.stars || 0;
-    if (stars < price) return { error: `Недостаточно звёзд. Нужно ${price} ⭐` };
-    const code = 'MG-N-' + Math.floor(100000 + Math.random() * 900000).toString();
-    user.stars = stars - price;
-    lsSet('mg_offline_users', users);
-    return { success: true, code, number, price, stars: user.stars, user };
-  }
-
-  if (p === '/api/auth/redeem-star-code' && options.method === 'POST') {
-    const sessions = lsGet('mg_offline_sessions', {});
-    const users = lsGet('mg_offline_users', []);
-    const user = users.find(u => u.id === sessions[token]);
-    if (!user) return { error: 'Not authorized' };
-    const code = String(body.code || '').trim().toUpperCase();
-    const m = code.match(/^MG-S-(\d{6})$/);
-    if (!m) return { error: 'Invalid star code' };
-    const stars = parseInt(m[1], 10) % 1000 || 100;
-    user.stars = (user.stars || 0) + stars;
-    lsSet('mg_offline_users', users);
-    return { success: true, stars: user.stars, user };
-  }
-
-  if (p === '/api/me') {
-    const sessions = lsGet('mg_offline_sessions', {});
-    const user = lsGet('mg_offline_users', []).find(u => u.id === sessions[token]);
-    if (!user) return { error: 'Not authorized' };
-    return { user };
-  }
-
-  if (p === '/api/users') {
-    return { users: lsGet('mg_offline_users', []) };
-  }
-
-  if (p.startsWith('/api/messages/')) {
-    const otherId = p.split('/').pop();
-    const sessions = lsGet('mg_offline_sessions', {});
-    const me = sessions[token];
-    const msgs = lsGet('mg_offline_messages', []).filter(m =>
-      (m.from === me && m.to === otherId) || (m.from === otherId && m.to === me)
-    );
-    return { messages: msgs };
-  }
-
-  if (p === '/api/send' && options.method === 'POST') {
-    const sessions = lsGet('mg_offline_sessions', {});
-    const me = sessions[token];
-    if (!me) return { error: 'Not authorized' };
-    const text = String(body.text || '').trim();
-    if (!text) return { error: 'Empty message' };
-    const msg = { id: randHex(8), from: me, to: String(body.to || ''), text, created: Date.now(), read: false };
-    const msgs = lsGet('mg_offline_messages', []);
-    msgs.push(msg);
-    lsSet('mg_offline_messages', msgs);
-    return { success: true, message: msg };
-  }
-
-  if (p === '/api/bot-info') return { username: '' };
-
-  return { error: 'Not found' };
+  }).catch(function() {});
 }
 
-var GITHUB_PAGES = 'https://zizksks150-dotcom.github.io/millygram';
-function serverBase() {
-  if (location.protocol.startsWith('http')) {
-    var o = location.origin;
-    if (o.indexOf('serveousercontent.com') !== -1 || o.indexOf('localhost') !== -1) return o;
-    try {
-      var saved = localStorage.getItem('mg_server');
-      if (saved) return saved;
-    } catch (e) {}
-    return 'https://5a8079bca780478a-212-55-75-224.serveousercontent.com';
-  }
-  try {
-    var saved = localStorage.getItem('mg_server');
-    if (saved) return saved;
-  } catch (e) {}
-  return 'https://5a8079bca780478a-212-55-75-224.serveousercontent.com';
-}
-function refreshServer() {
-  try {
-    var base = location.origin;
-    if (!base || base === 'null' || base.indexOf('file') !== -1) base = GITHUB_PAGES;
-    fetch(base + '/PUBLIC_URL.txt?_=' + Date.now(), { cache: 'no-store' })
-      .then(function(r) { return r.text(); })
-      .then(function(t) {
-        var u = (t || '').trim();
-        if (u && /^https?:\/\//.test(u)) localStorage.setItem('mg_server', u);
-      })
-      .catch(function() {});
-  } catch (e) {}
-}
-
-async function api(path, options = {}) {
-  if (!offlineMode) {
-    try {
-      const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
-      if (checkLocalBan()) return;
-  const token = localStorage.getItem('mg_token');
-      if (token && !headers.Authorization) headers.Authorization = token;
-      const res = await fetch(serverBase() + path, { ...options, headers });
-      const text = await res.text();
-      const j = JSON.parse(text); if (j && j.blocked) { banCacheSet(j); setTimeout(showBanScreen, 0, j); } else if (j && j.user && !j.blocked) { banCacheClear(); } return j;
-    } catch (e) {
-      refreshServer();
-      try {
-        var retryBase = serverBase();
-        var retryRes = await fetch(retryBase + path, { ...options, headers });
-        var retryText = await retryRes.text();
-        offlineMode = false;
-        var j2 = JSON.parse(retryText);
-        if (j2 && j2.blocked) { banCacheSet(j2); setTimeout(showBanScreen, 0, j2); }
-        else if (j2 && j2.user && !j2.blocked) { banCacheClear(); }
-        return j2;
-      } catch (e2) {
-        offlineMode = true;
-        console.warn('[MillyGram] Server offline after retry');
-      }
-    }
-  }
-  const headers = { ...(options.headers || {}) };
-  const token = localStorage.getItem('mg_token');
-  if (token && !headers.Authorization) headers.Authorization = token;
-  return localApi(path, { ...options, headers });
-}
-
-function isOffline() { return offlineMode; }
-
-async function requestCode() {
-  hideError();
-  const national = formatPhone(document.getElementById('phone-input').value).replace(/\D/g, '');
-  if (national.length !== getCountryDigits()) {
-    return showError(`Введите номер из ${getCountryDigits()} цифр`);
-  }
-  const phone = fullPhone();
-
-  showStep(2);
-  document.getElementById('debug-code').innerHTML = '⏳ Отправляем код...';
-
-  try {
-    let botName = '';
-    try {
-      const botInfo = await api('/api/bot-info');
-      botName = botInfo.username;
-    } catch {}
-
-    const data = await api('/api/auth/request-code', {
-      method: 'POST',
-      body: JSON.stringify({ phone })
-    });
-    if (data.success) {
-      if (botName) {
-        document.getElementById('debug-code').innerHTML =
-          `📨 Код отправлен в Telegram-бота <a href="https://t.me/${botName}" target="_blank" style="color:#2AABEE">@${botName}</a>` +
-          `<br><span class="code-fallback">Резерв: ${data.debug_code}</span>`;
-      } else {
-        document.getElementById('debug-code').textContent = `Код: ${data.debug_code}`;
-      }
-      document.querySelector('.code-digit').focus();
-    } else if (data.requiresActivation) {
-      document.getElementById('access-code-input').value = '';
-      document.getElementById('access-code-hint').textContent =
-        data.message || 'Этот номер ещё не зарегистрирован. Введите код доступа из бота';
-      showStep(6);
-    } else {
-      document.getElementById('debug-code').textContent = '';
-      showError('Не удалось отправить код. Нажмите «Изменить номер» и попробуйте ещё раз.');
-    }
-  } catch (e) {
-    document.getElementById('debug-code').textContent = '';
-    showError('Нет связи с сервером MillyGram. Проверьте, что сервер запущен, и повторите.');
-  }
-}
-
-async function verifyAccessCode() {
-  hideError();
-  const code = document.getElementById('access-code-input').value.trim().toUpperCase();
-  if (!/^MG-N-\d{6}$/.test(code)) return showError('Введите код в формате MG-N-XXXXXX (выдаёт бот @MillyGramShop_bot)');
-
-  try {
-    const data = await api('/api/auth/verify-access-code', {
-      method: 'POST',
-      body: JSON.stringify({ phone: currentPhone(), code })
-    });
-    if (data.success && data.user) {
-      localStorage.setItem('mg_token', data.token);
-      sessionStorage.setItem('mg_fresh_auth', '1');
-      completeAuth(data.token, data.user, true);
-      updateChatList();
-    } else {
-      showError(data.error || 'Не удалось активировать номер по коду доступа');
-    }
-  } catch (e) {
-    showError('Нет связи с сервером. Проверьте, что сервер запущен.');
-  }
-}
-
-function currentPhone() {
-  return fullPhone();
-}
-
-function currentCode() {
-  return Array.from(document.querySelectorAll('.code-digit')).map(d => d.value).join('');
-}
-
-async function verifyCode() {
-  hideError();
-  const code = currentCode();
-  if (code.length !== 6) return showError('Введите 6-значный код');
-
-  try {
-    const data = await api('/api/auth/verify-code', {
-      method: 'POST',
-      body: JSON.stringify({ phone: currentPhone(), code })
-    });
-    if (data.success) {
-      if (data.requiresPassword) {
-        localStorage.setItem('mg_pending_token', data.token);
-        showStep(5);
-      } else if (data.user.name === 'Пользователь') {
-        // New account: remember token, let user pick a nickname
-        localStorage.setItem('mg_pending_token', data.token);
-        showStep(3);
-      } else {
-        completeAuth(data.token, data.user);
-      }
-    } else {
-      showError('Неверный код');
-    }
-  } catch (e) {
-    showError('Нет связи с сервером. Проверьте, что сервер запущен.');
-  }
-}
-
-async function register() {
-  hideError();
-  const name = document.getElementById('name-input').value.trim();
-  if (!name) return showError('Введите никнейм (любой)');
-
-  const username = document.getElementById('username-input').value.trim().replace(/^@/, '');
-  if (!/^[a-z0-9_]{3,30}$/i.test(username)) {
-    return showError('Username: 3–30 символов, буквы/цифры/подчёркивание (например al_ex1)');
-  }
-
-  try {
-    const data = await api('/api/auth/verify-code', {
-      method: 'POST',
-      body: JSON.stringify({ phone: currentPhone(), code: currentCode(), name, username })
-    });
-    if (data.success && data.user && data.user.name !== 'Пользователь') {
-      localStorage.removeItem('mg_pending_token');
-      sessionStorage.setItem('mg_fresh_auth', '1');
-      completeAuth(data.token, data.user, true);
-      updateChatList();
-    } else {
-      localStorage.removeItem('mg_pending_token');
-      showError(data.error || 'Не удалось зарегистрироваться. Вернитесь и введите код заново.');
-      if (!document.getElementById('auth-step4').classList.contains('active')) showStep4();
-    }
-  } catch (e) {
-    showError('Нет связи с сервером. Проверьте, что сервер запущен.');
-  }
-}
-
-async function verifyCloudPassword() {
-  hideError();
-  const pw = document.getElementById('cloud-password-input').value;
-  if (!pw) return showError('Введите облачный пароль');
-  const pendingToken = localStorage.getItem('mg_pending_token');
-  try {
-    const data = await api('/api/auth/verify-password', {
-      method: 'POST',
-      body: JSON.stringify({ password: pw }),
-      headers: pendingToken ? { Authorization: pendingToken } : {}
-    });
-    if (data.success && data.user) {
-      localStorage.removeItem('mg_pending_token');
-      localStorage.setItem('mg_token', data.token || pendingToken);
-      completeAuth(data.token || pendingToken, data.user);
-    } else {
-      showError('Неверный облачный пароль');
-    }
-  } catch (e) {
-    showError('Нет связи с сервером');
-  }
-}
-
-function showSecurity() {
-  const active = !!(currentUser && currentUser.cloudHash);
-  document.getElementById('security-status').textContent =
-    active ? 'Облачный пароль установлен' : 'Облачный пароль не установлен';
-  document.getElementById('security-status').className = active ? 'online' : '';
-  const change = document.getElementById('security-set-block');
-  if (change) change.style.display = 'flex';
-  showScreen('security-screen');
-}
-
-async function saveCloudPassword() {
-  const err = document.getElementById('cloud-pw-error');
-  const pw = document.getElementById('cloud-pw-input').value;
-  const pw2 = document.getElementById('cloud-pw-input2').value;
-  err.style.display = 'none';
-  if (pw.length < 4) {
-    err.textContent = 'Пароль должен быть минимум 4 символа'; err.style.display = 'block'; return;
-  }
-  if (pw !== pw2) {
-    err.textContent = 'Пароли не совпадают'; err.style.display = 'block'; return;
-  }
-  try {
-    const data = await api('/api/auth/set-password', {
-      method: 'POST',
-      body: JSON.stringify({ password: pw })
-    });
-    if (data.success && data.user) {
-      currentUser = data.user;
-      wrapUserData();
-      document.getElementById('cloud-pw-input').value = '';
-      document.getElementById('cloud-pw-input2').value = '';
-      showSecurity();
-    } else {
-      err.textContent = data.error || 'Не удалось сохранить пароль'; err.style.display = 'block';
-    }
-  } catch (e) {
-    err.textContent = 'Нет связи с сервером'; err.style.display = 'block';
-  }
-}
-
-async function completeAuth(token, user, showWelcome = true) {
-  localStorage.setItem('mg_token', token);
-  currentUser = user;
-  wrapUserData();
-  document.getElementById('welcome-title').textContent = 'Добро пожаловать в MillyGram, ' + user.name + '!';
-  if (showWelcome) {
-    showScreen('welcome-screen');
-  } else {
-    showScreen('chatlist-screen');
-  }
-  loadUsers();
-  startPolling();
-}
-
-function wrapUserData() {
-  const key = 'mg_chats_' + currentUser.id;
-  if (!localStorage.getItem(key)) localStorage.setItem(key, '[]');
-  // accept old shared list for the first-run migration
-  const old = localStorage.getItem('mg_chats');
-  if (old && localStorage.getItem(key) === '[]') {
-    localStorage.setItem(key, old);
-    localStorage.removeItem('mg_chats');
-  }
-}
-
-function welcomeToChats() {
-  showScreen('chatlist-screen');
-  updateChatList();
+function api(path, opts) {
+  return getServer().then(function(base) {
+    return fetch(base + path, Object.assign({
+      cache: 'no-store'
+    }, opts || {}));
+  }).then(function(r) { return r.json(); });
 }
 
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  ['splash','auth-screen','chat-screen','ban-screen'].forEach(function(s) {
+    var el = document.getElementById(s);
+    if (el) el.style.display = 'none';
+  });
+  var el = document.getElementById(id);
+  if (el) el.style.display = id === 'chat-screen' ? 'flex' : 'flex';
 }
 
-let allContacts = [];
-
-async function loadUsers() {
-  const data = await api('/api/users');
-  allContacts = data.users.filter(u => u.id !== currentUser.id);
-  renderContactsFiltered();
-  updateChatList();
-}
-
-function renderContactsFiltered() {
-  const q = (document.getElementById('search-input').value || '').trim().toLowerCase().replace(/^@/, '');
-  const list = q
-    ? allContacts.filter(u =>
-        (u.name || '').toLowerCase().includes(q) ||
-        (u.username || '').toLowerCase().includes(q))
-    : allContacts;
-  renderContacts(list, q);
-}
-
-function renderContacts(users, q) {
-  const list = document.getElementById('contacts-list');
-  if (!users.length) {
-    list.innerHTML = `<div class="contacts-empty">${q ? 'Никого не найдено по запросу «' + escapeHtml(q) + '»' : 'Пока нет других людей. Позовите друзей!'}</div>`;
-    return;
-  }
-  list.innerHTML = users.map(u => `
-    <div class="contact-item" onclick="openChat('${u.id}')">
-      <img class="contact-avatar" src="${u.avatar}" alt="">
-      <div class="contact-info">
-        <div class="contact-name">${escapeHtml(u.name)}${verifiedBadge(u)}${u.premium ? '<span class="premium-name-star">⭐</span>' : ''}</div>
-        <div class="contact-status ${u.online ? 'online' : ''}">${u.username ? '@' + escapeHtml(u.username) + ' · ' : ''}${u.online ? 'в сети' : 'не в сети'}</div>
-      </div>
-    </div>
-  `).join('');
-}
-
-function updateChatList() {
-  const chats = JSON.parse(localStorage.getItem('mg_chats_' + (currentUser ? currentUser.id : 'guest')) || '[]');
-  const list = document.getElementById('chat-list');
-  const empty = document.getElementById('empty-state');
-
-  if (chats.length === 0) {
-    list.innerHTML = '';
-    empty.classList.add('show');
-    return;
-  }
-
-  empty.classList.remove('show');
-  list.innerHTML = chats.map(c => `
-    <div class="chat-item" onclick="openChat('${c.id}')">
-      <img class="chat-item-avatar" src="${c.avatar}" alt="">
-      <div class="chat-item-info">
-        <div class="chat-item-name">${escapeHtml(c.name)}${c.verified ? `<span class="verified-badge" title="Подтверждён">${VERIFIED_SVG}</span>` : ''}</div>
-        <div class="chat-item-last">${escapeHtml(c.lastMessage || 'Нет сообщений')}</div>
-      </div>
-      <div class="chat-item-meta">
-        <div class="chat-item-time">${c.lastTime || ''}</div>
-        ${c.unread ? `<div class="chat-item-unread">${c.unread}</div>` : ''}
-      </div>
-    </div>
-  `).join('');
-}
-
-async function openChat(userId) {
-  const data = await api('/api/users');
-  currentChat = data.users.find(u => u.id === userId);
-  if (!currentChat) return;
-
-  document.getElementById('chat-name').innerHTML = escapeHtml(currentChat.name) + verifiedBadge(currentChat);
-  document.getElementById('chat-avatar').src = currentChat.avatar;
-  document.getElementById('chat-status').textContent = currentChat.online ? 'в сети' : 'не в сети';
-  document.getElementById('chat-status').className = currentChat.online ? 'online' : '';
-
-  const msgData = await api(`/api/messages/${userId}`);
-  const list = document.getElementById('messages-list');
-  list.innerHTML = '<div class="typing-indicator" id="typing-indicator"><div class="typing-dots"><span></span><span></span><span></span></div><span class="typing-text" style="margin-left:8px">печатает...</span></div>';
-
-  msgData.messages.sort((a, b) => a.created - b.created).forEach(m => appendMessage(m));
-
-  showScreen('chat-screen');
-  saveChatToList(currentChat);
-  clearUnread(currentChat.id);
-  scrollToBottom();
-}
-
-function clearUnread(chatId) {
-  let chats = JSON.parse(localStorage.getItem('mg_chats') || '[]');
-  chats = chats.map(c => c.id === chatId ? { ...c, unread: 0 } : c);
-  localStorage.setItem('mg_chats', JSON.stringify(chats));
-  updateChatList();
-}
-
-function appendMessage(msg) {
-  const list = document.getElementById('messages-list');
-  const typing = document.getElementById('typing-indicator');
-  const isOut = msg.from === currentUser.id;
-  const time = new Date(msg.created).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-
-  const div = document.createElement('div');
-  div.className = `message ${isOut ? 'out' : 'in'} ${msg.read ? 'read' : ''}`;
-  div.dataset.msgId = msg.id;
-  div.innerHTML = `
-    <div class="message-text">${escapeHtml(msg.text)}</div>
-    <div class="message-time">${time}</div>
-  `;
-  list.insertBefore(div, typing);
-}
-
-function scrollToBottom() {
-  const container = document.getElementById('messages-container');
-  setTimeout(() => container.scrollTop = container.scrollHeight, 50);
-}
-
-async function sendMessage() {
-  const input = document.getElementById('message-input');
-  const text = input.value.trim();
-  if (!text || !currentChat) return;
-
-  try {
-    const data = await api('/api/send', {
-      method: 'POST',
-      body: JSON.stringify({ to: currentChat.id, text })
-    });
-    if (data.success) appendMessage(data.message);
-    input.value = '';
-    updateLastMessage(currentChat.id, text);
-    scrollToBottom();
-  } catch (e) {
-    alert('Не удалось отправить сообщение');
-  }
-  refreshUsers();
-}
-
-function handleMessageKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
-}
-
-async function refreshUsers() {
-  const data = await api('/api/users');
-  if (currentChat) {
-    const fresh = data.users.find(u => u.id === currentChat.id);
-    if (fresh) {
-      currentChat = fresh;
-      document.getElementById('chat-status').textContent = fresh.online ? 'в сети' : 'не в сети';
-      document.getElementById('chat-status').className = fresh.online ? 'online' : '';
-    }
-  }
-}
-
-// Polling: check for new messages & online status every second
-let pollTick = 0;
-function startPolling() {
-  if (pollTimer) clearInterval(pollTimer);
-  pollTimer = setInterval(async () => {
-    if (!currentUser) return;
-    await refreshUsers();
-
-    // Contacts refresh: newly-registered people appear in contacts live
-    pollTick++;
-    if (pollTick % 5 === 0) loadUsers();
-
-    if (currentChat) {
-      const msgData = await api(`/api/messages/${currentChat.id}`);
-      const existing = new Set(
-        Array.from(document.querySelectorAll('.message')).map(d => d.dataset.msgId)
-      );
-      let hasNew = false;
-      msgData.messages
-        .sort((a, b) => a.created - b.created)
-        .forEach(m => {
-          if (!existing.has(m.id)) {
-            appendMessage(m);
-            hasNew = true;
-            if (m.from !== currentUser.id) updateLastMessage(currentChat.id, m.text, true);
-          }
-        });
-      if (hasNew) scrollToBottom();
-    }
-
-    updateChatList();
-  }, 1000);
-}
-
-function saveChatToList(chat) {
-  let chats = JSON.parse(localStorage.getItem('mg_chats_' + currentUser.id) || '[]');
-  if (!chats.find(c => c.id === chat.id)) {
-    chats.unshift({ id: chat.id, name: chat.name, avatar: chat.avatar, verified: !!chat.verified, lastMessage: '', lastTime: '', unread: 0 });
+function showTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.auth-form').forEach(function(f) { f.classList.remove('active'); });
+  if (tab === 'login') {
+    document.querySelectorAll('.auth-tab')[0].classList.add('active');
+    document.getElementById('login-form').classList.add('active');
   } else {
-    chats = chats.map(c => c.id === chat.id ? { ...c, avatar: chat.avatar, name: chat.name, verified: !!chat.verified } : c);
+    document.querySelectorAll('.auth-tab')[1].classList.add('active');
+    document.getElementById('register-form').classList.add('active');
   }
-  localStorage.setItem('mg_chats_' + currentUser.id, JSON.stringify(chats));
-  updateChatList();
+  hideError();
 }
 
-function updateLastMessage(chatId, text, isIncoming) {
-  let chats = JSON.parse(localStorage.getItem('mg_chats_' + currentUser.id) || '[]');
-  const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-  chats = chats.map(c => {
-    if (c.id === chatId) {
-      return {
-        ...c,
-        lastMessage: text,
-        lastTime: time,
-        unread: isIncoming ? (c.unread || 0) + 1 : 0
-      };
-    }
-    return c;
+function showError(msg) {
+  var el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideError() {
+  document.getElementById('auth-error').style.display = 'none';
+}
+
+function doLogin(e) {
+  e.preventDefault();
+  hideError();
+  var login = document.getElementById('login-user').value.trim();
+  var pass = document.getElementById('login-pass').value;
+  if (!login || !pass) { showError('Заполни все поля'); return false; }
+  var btn = document.querySelector('#login-form .auth-btn');
+  btn.disabled = true;
+  btn.textContent = 'Вход…';
+  api('/api/portal/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ login: login, password: pass })
+  }).then(function(j) {
+    btn.disabled = false;
+    btn.textContent = 'Войти';
+    if (j.error) return showError(j.error);
+    if (j.blocked) return showBan(j.reason, j.bannedUntil);
+    token = j.token;
+    userNick = j.user.nick || j.user.login;
+    try { localStorage.setItem('pg_token', token); } catch(e) {}
+    enterChat();
+  }).catch(function() {
+    btn.disabled = false;
+    btn.textContent = 'Войти';
+    fetchServer().then(function() { showError('Сервер недоступен, попробуй ещё раз'); });
   });
-  localStorage.setItem('mg_chats_' + currentUser.id, JSON.stringify(chats));
-  updateChatList();
-}
-
-function showProfile() {
-  document.getElementById('profile-avatar').src = currentUser.avatar;
-  const nameEl = document.getElementById('profile-name');
-  nameEl.innerHTML = escapeHtml(currentUser.name || '') +
-    (currentUser.premium ? '<span class="premium-name-star">⭐</span>' : '') +
-    (currentUser.username ? `<div class="profile-username">@${escapeHtml(currentUser.username)}</div>` : '');
-  const phone = currentUser.phone;
-  document.getElementById('profile-phone').textContent = '+' + phone;
-  document.getElementById('profile-verified-row').style.display = currentUser.verified ? 'flex' : 'none';
-  renderPremiumState();
-  showScreen('profile-screen');
-}
-
-function openPhotoPicker() {
-  document.getElementById('photo-input').click();
-}
-
-function onPhotoPicked(e) {
-  const file = e.target.files && e.target.files[0];
-  e.target.value = '';
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const img = new Image();
-    img.onload = () => {
-      const size = 400;
-      const scale = Math.min(size / img.width, size / img.height, 1);
-      const w = Math.max(1, Math.round(img.width * scale));
-      const h = Math.max(1, Math.round(img.height * scale));
-      const canvas = document.createElement('canvas');
-      canvas.width = w;
-      canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      saveAvatar(canvas.toDataURL('image/jpeg', 0.9));
-    };
-    img.src = reader.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-async function saveAvatar(dataUrl) {
-  try {
-    const data = await api('/api/auth/avatar', {
-      method: 'POST',
-      body: JSON.stringify({ avatar: dataUrl })
-    });
-    if (data.success && data.user) {
-      currentUser = data.user;
-      wrapUserData();
-      showProfile();
-      loadUsers();
-      if (currentChat) refreshUsers();
-    } else {
-      alert('Не удалось сохранить фото');
-    }
-  } catch (err) {
-    alert('Нет связи с сервером');
-  }
-}
-
-function showSettings() {
-  renderPremiumState();
-  showScreen('settings-screen');
-}
-
-function showPremium() {
-  renderPremiumState();
-  showScreen('premium-screen');
-}
-
-function renderPremiumState() {
-  const active = !!(currentUser && currentUser.premium);
-  document.getElementById('premium-active').classList.toggle('hidden', !active);
-  document.getElementById('premium-not-active').classList.toggle('hidden', active);
-  document.getElementById('premium-item-subtitle').textContent =
-    active ? 'Premium активен' : 'Активировать Premium в MillyGram';
-  if (active) document.getElementById('premium-error').style.display = 'none';
-}
-
-async function activatePremium() {
-  const input = document.getElementById('premium-code-input');
-  const err = document.getElementById('premium-error');
-  const code = input.value.trim();
-  if (!code) { err.textContent = 'Введите код активации'; err.style.display = 'block'; return; }
-  err.style.display = 'none';
-  try {
-    const data = await api('/api/auth/activate-premium', {
-      method: 'POST',
-      body: JSON.stringify({ code })
-    });
-    if (data.success && data.user) {
-      currentUser = data.user;
-      wrapUserData();
-      renderPremiumState();
-      showProfile();
-    } else {
-      err.textContent = 'Неверный код. Купите код в @MillyGramShop_bot';
-      err.style.display = 'block';
-    }
-  } catch (e) {
-    err.textContent = 'Нет связи с сервером';
-    err.style.display = 'block';
-  }
-}
-
-function showStars() {
-  renderStarsState();
-  showScreen('stars-screen');
-}
-
-function showNumbers() {
-  renderNumbersState();
-  showScreen('numbers-screen');
-}
-
-function renderNumbersState() {
-  const err = document.getElementById('number-error');
-  const result = document.getElementById('number-result');
-  const input = document.getElementById('number-code-input');
-  if (err) err.style.display = 'none';
-  if (result) result.style.display = 'none';
-  if (input) { input.value = ''; input.classList.remove('input-error'); }
-  const box = document.getElementById('number-choice');
-  if (box) {
-    box.innerHTML = '';
-    ['+999', '+222'].forEach(num => {
-      const b = document.createElement('button');
-      b.className = 'number-choice-btn';
-      b.setAttribute('data-num', num);
-      b.textContent = num;
-      b.onclick = () => selectNumber(num);
-      box.appendChild(b);
-    });
-  }
-  selectNumber('+999');
-}
-
-function selectNumber(num) {
-  document.querySelectorAll('#number-choice .number-choice-btn').forEach(b => {
-    const on = b.getAttribute('data-num') === num;
-    b.classList.toggle('active', on);
-  });
-}
-
-function getSelectedNumber() {
-  const active = document.querySelector('#number-choice .number-choice-btn.active');
-  return active ? active.getAttribute('data-num') || '+' + COUNTRIES[0].code : '+' + COUNTRIES[0].code;
-}
-
-function clearNumberInputError() {
-  const input = document.getElementById('number-code-input');
-  if (input) input.classList.remove('input-error');
-  const err = document.getElementById('number-error');
-  if (err) err.style.display = 'none';
-}
-
-async function redeemNumberCode() {
-  const input = document.getElementById('number-code-input');
-  const err = document.getElementById('number-error');
-  const result = document.getElementById('number-result');
-  const code = input.value.trim();
-  const number = getSelectedNumber();
-  input.classList.remove('input-error');
-  if (!code) { err.textContent = 'Введите код из бота'; err.style.display = 'block'; input.classList.add('input-error'); return; }
-  err.style.display = 'none';
-  result.style.display = 'none';
-  try {
-    const data = await api('/api/auth/redeem-number-code', {
-      method: 'POST',
-      body: JSON.stringify({ code, number })
-    });
-    if (data.success && data.number) {
-      currentUser = data.user;
-      wrapUserData();
-      document.getElementById('number-result-name').textContent = data.number;
-      document.getElementById('number-result-phone').textContent = data.phone;
-      result.style.display = 'block';
-      input.value = '';
-    } else {
-      err.textContent = data.error || 'Неверный код. Купите номер в @MillyGramShop_bot';
-      err.style.display = 'block';
-      input.classList.add('input-error');
-      setTimeout(() => input.classList.remove('input-error'), 2500);
-    }
-  } catch (e) {
-    err.textContent = 'Нет связи с сервером';
-    err.style.display = 'block';
-    input.classList.add('input-error');
-    setTimeout(() => input.classList.remove('input-error'), 2500);
-  }
-}
-
-function renderStarsState() {
-  const balance = (currentUser && currentUser.stars) || 0;
-  document.getElementById('stars-balance').textContent = balance;
-  document.getElementById('stars-item-subtitle').textContent = `Баланс: ${balance} ⭐`;
-  const err = document.getElementById('stars-code-error');
-  if (err) err.style.display = 'none';
-  document.getElementById('stars-code-success').style.display = 'none';
-}
-
-async function redeemStarCode() {
-  const input = document.getElementById('stars-code-input');
-  const err = document.getElementById('stars-code-error');
-  const ok = document.getElementById('stars-code-success');
-  const code = input.value.trim();
-  if (!code) { err.textContent = 'Введите код пополнения'; err.style.display = 'block'; return; }
-  err.style.display = 'none';
-  ok.style.display = 'none';
-  try {
-    const data = await api('/api/auth/redeem-star-code', {
-      method: 'POST',
-      body: JSON.stringify({ code })
-    });
-    if (data.success && data.user) {
-      currentUser = data.user;
-      wrapUserData();
-      renderStarsState();
-      input.value = '';
-      ok.textContent = `+${data.stars} ⭐ зачислено! Баланс: ${data.user.stars} ⭐`;
-      ok.style.display = 'block';
-    } else {
-      err.textContent = 'Неверный код. Получите код в @MillyGramShop_bot';
-      err.style.display = 'block';
-    }
-  } catch (e) {
-    err.textContent = 'Нет связи с сервером';
-    err.style.display = 'block';
-  }
-}
-
-function showChatList() { showScreen('chatlist-screen'); }
-function searchUsers() {
-  const si = document.getElementById('search-input');
-  if (si) si.value = '';
-  showScreen('contacts-screen');
-  loadUsers();
-}
-
-function logout() {
-  // Keep all user data — progress is never lost.
-  localStorage.removeItem('mg_token');
-  currentUser = null;
-  currentChat = null;
-  if (pollTimer) clearInterval(pollTimer);
-  showScreen('auth-screen');
-  showStep(1);
-  document.querySelectorAll('.code-digit').forEach(d => d.value = '');
-  document.getElementById('phone-input').value = '';
-}
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-function hashStr(s) {
-  let h = 1779033703 ^ s.length;
-  for (let i = 0; i < s.length; i++) {
-    h = Math.imul(h ^ s.charCodeAt(i), 3432918353);
-    h = (h << 13) | (h >>> 19);
-  }
-  return 'h' + (h >>> 0).toString(16);
-}
-
-const VERIFIED_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>';
-
-function verifiedBadge(user) {
-  return user && user.verified
-    ? `<span class="verified-badge" title="Подтверждён">${VERIFIED_SVG}</span>`
-    : '';
-}
-
-
-function banDaysText(until) {
-  const d = Math.max(1, Math.ceil((until - Date.now()) / 86400000));
-  const n10 = d % 10, n100 = d % 100;
-  let w;
-  if (n10 === 1 && n100 !== 11) w = 'день';
-  else if (n10 >= 2 && n10 <= 4 && (n100 < 12 || n100 > 14)) w = 'дня';
-  else w = 'дней';
-  return d + ' ' + w;
-}
-function banCacheSet(data) {
-  try {
-    localStorage.setItem('mg_local_ban', JSON.stringify({
-      bannedUntil: data.bannedUntil || (Date.now() + 14 * 86400000),
-      reason: data.reason || 'Нарушение правил сообщества',
-      phone: data.phone || '',
-      at: Date.now()
-    }));
-  } catch (e) {}
-}
-function banCacheClear() {
-  try { localStorage.removeItem('mg_local_ban'); } catch (e) {}
-}
-function banCacheGet() {
-  try { return JSON.parse(localStorage.getItem('mg_local_ban')) || null; } catch (e) { return null; }
-}
-function showBanScreen(data) {
-  try {
-    const until = data && data.bannedUntil ? new Date(data.bannedUntil) : null;
-    if (until && until.getTime() <= Date.now()) {
-      banCacheClear();
-      return;
-    }
-    banCacheSet(data || {});
-    const el = document.getElementById('ban-screen');
-    if (!el) return;
-    document.getElementById('ban-reason').textContent = (data && data.reason) || 'Нарушение правил сообщества';
-    document.getElementById('ban-duration').textContent = until ? 'на ' + banDaysText(until.getTime()) : 'на неопределённый срок';
-    document.getElementById('ban-until').textContent = until ? until.toLocaleDateString('ru-RU') : 'позже';
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    const auth = document.getElementById('auth-screen');
-    if (auth) auth.style.display = 'none';
-    el.style.display = 'flex';
-    el.classList.add('active');
-    if (typeof pollTimer !== 'undefined' && pollTimer) clearInterval(pollTimer);
-    if (typeof banPollTimer === 'function') { banPollTimer(); setInterval(banPollTimer, 20000); }
-  } catch (e) {}
-}
-function checkLocalBan() {
-  const b = banCacheGet();
-  if (!b) return false;
-  if (b.bannedUntil && b.bannedUntil > Date.now()) {
-    showBanScreen(b);
-    banPollTimer();
-    return true;
-  }
-  banCacheClear();
   return false;
 }
-function bannedOk() { location.reload(); }
-function banPollTimer() {
-  try {
-    const b = banCacheGet();
-    if (!b) return;
-    const token = localStorage.getItem('mg_token');
-    const headers = { 'Content-Type': 'application/json' };
-    let url;
-    if (token) {
-      headers.Authorization = token;
-      url = serverBase() + '/api/me';
-    } else if (b.phone) {
-      url = serverBase() + '/api/ban-check?phone=' + encodeURIComponent(b.phone);
-    } else {
-      return;
-    }
-    fetch(url, { cache: 'no-store', headers })
-      .then(r => r.json())
-      .then(j => {
-        if (j && j.blocked) {
-          banCacheSet({ bannedUntil: j.bannedUntil, reason: j.reason, phone: b.phone || j.phone });
-        } else if (j && (j.user || j.blocked === false)) {
-          banCacheClear();
-          location.reload();
-        }
-      })
-      .catch(() => { refreshServer(); });
-  } catch (e) {}
+
+function doRegister(e) {
+  e.preventDefault();
+  hideError();
+  var login = document.getElementById('reg-user').value.trim();
+  var nick = document.getElementById('reg-nick').value.trim();
+  var pass = document.getElementById('reg-pass').value;
+  var invite = document.getElementById('reg-invite').value.trim().toUpperCase();
+  if (!login || !pass || !invite) { showError('Заполни все поля'); return false; }
+  var btn = document.querySelector('#register-form .auth-btn');
+  btn.disabled = true;
+  btn.textContent = 'Создаём…';
+  api('/api/portal/newuser', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ login: login, password: pass, invite: invite, nick: nick || login })
+  }).then(function(j) {
+    btn.disabled = false;
+    btn.textContent = 'Создать аккаунт';
+    if (j.error) return showError(j.error);
+    if (j.blocked) return showBan(j.reason, j.bannedUntil);
+    token = j.token;
+    userNick = j.user.nick || j.user.login;
+    try { localStorage.setItem('pg_token', token); } catch(e) {}
+    enterChat();
+  }).catch(function() {
+    btn.disabled = false;
+    btn.textContent = 'Создать аккаунт';
+    fetchServer().then(function() { showError('Сервер недоступен, попробуй ещё раз'); });
+  });
+  return false;
 }
 
-// Init
-refreshServer();
-document.addEventListener('DOMContentLoaded', () => {
-  const token = localStorage.getItem('mg_token');
-  if (token) {
-    const fresh = sessionStorage.getItem('mg_fresh_auth') === '1';
-    sessionStorage.removeItem('mg_fresh_auth');
-    api('/api/me').then(data => {
-      if (data.user) completeAuth(token, data.user, fresh);
-    }).catch(() => {});
+function enterChat() {
+  try { localStorage.setItem('pg_token', token); } catch(e) {}
+  document.getElementById('my-nick').textContent = userNick;
+  showScreen('chat-screen');
+  loadChat();
+  loadUsers();
+  pollTimer = setInterval(function() {
+    loadChat();
+    loadUsers();
+  }, 3000);
+}
+
+function loadChat() {
+  if (!token) return;
+  api('/api/portal/chat?since=' + lastMsgId, {
+    method: 'GET',
+    headers: { 'Authorization': token }
+  }).then(function(j) {
+    if (j && j.blocked) { showBan(j.reason, j.bannedUntil); return; }
+    if (!j || !j.messages) return;
+    var box = document.getElementById('chat-messages');
+    var isBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 60;
+    if (j.messages.length) {
+      var first = document.querySelector('.chat-empty');
+      if (first) first.remove();
+    }
+    j.messages.forEach(function(m) {
+      if (m.id <= lastMsgId) return;
+      lastMsgId = m.id;
+      var el = document.createElement('div');
+      var isMine = m.login === userNick || m.login === userNick.toLowerCase();
+      el.className = 'chat-msg' + (isMine ? ' mine' : '');
+      var time = new Date(m.ts);
+      var timeStr = ('0'+time.getHours()).slice(-2) + ':' + ('0'+time.getMinutes()).slice(-2);
+      el.innerHTML = '<div class="chat-msg-login">' + escHtml(m.nick) + '</div>' +
+        '<div class="chat-msg-text">' + escHtml(m.text) + '</div>' +
+        '<div class="chat-msg-time">' + timeStr + '</div>';
+      box.appendChild(el);
+    });
+    if (isBottom) box.scrollTop = box.scrollHeight;
+  }).catch(function() {});
+}
+
+function loadUsers() {
+  if (!token) return;
+  api('/api/portal/users', {
+    method: 'GET',
+    headers: { 'Authorization': token }
+  }).then(function(j) {
+    if (j && j.blocked) { showBan(j.reason, j.bannedUntil); return; }
+    if (!j || !j.users) return;
+    var list = document.getElementById('people-list');
+    var onlineCount = j.users.filter(function(u) { return u.online; }).length;
+    document.getElementById('online-count').textContent = onlineCount + ' из ' + j.users.length + ' участников';
+    list.innerHTML = '';
+    j.users.sort(function(a, b) { return b.online - a.online; });
+    j.users.forEach(function(u) {
+      var el = document.createElement('div');
+      el.className = 'chat-person';
+      el.innerHTML = '<div class="chat-person-dot' + (u.online ? ' on' : '') + '"></div>' +
+        '<div class="chat-person-nick">' + escHtml(u.nick) + '</div>';
+      list.appendChild(el);
+    });
+  }).catch(function() {});
+}
+
+function sendMessage(e) {
+  e.preventDefault();
+  var input = document.getElementById('chat-input');
+  var text = input.value.trim();
+  if (!text || !token) return false;
+  input.value = '';
+  api('/api/portal/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': token },
+    body: JSON.stringify({ text: text })
+  }).then(function(j) {
+    if (j && j.blocked) { showBan(j.reason, j.bannedUntil); return; }
+    if (j && j.ok) loadChat();
+  }).catch(function() {});
+  return false;
+}
+
+function showBan(reason, until) {
+  if (pollTimer) clearInterval(pollTimer);
+  token = null;
+  try { localStorage.removeItem('pg_token'); } catch(e) {}
+  showScreen('ban-screen');
+  document.getElementById('ban-reason-text').textContent = reason || 'Аккаунт заблокирован';
+  if (until) {
+    var d = new Date(until);
+    document.getElementById('ban-duration-text').textContent = 'до ' + d.toLocaleDateString('ru-RU');
   }
-});
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function boot() {
+  token = null;
+  try { token = localStorage.getItem('pg_token'); } catch(e) {}
+  fetchServer().then(function() {
+    if (token) {
+      return api('/api/portal/me', {
+        method: 'GET',
+        headers: { 'Authorization': token }
+      });
+    }
+    return null;
+  }).then(function(j) {
+    setTimeout(function() {
+      document.getElementById('splash').classList.add('hide');
+      if (j && j.blocked) {
+        showBan(j.reason, j.bannedUntil);
+      } else if (j && j.user) {
+        userNick = j.user.nick || j.user.login;
+        enterChat();
+      } else {
+        showScreen('auth-screen');
+        document.getElementById('footer-chat-link').style.display = 'inline';
+      }
+    }, 1800);
+  }).catch(function() {
+    setTimeout(function() {
+      document.getElementById('splash').classList.add('hide');
+      showScreen('auth-screen');
+      document.getElementById('footer-chat-link').style.display = 'inline';
+    }, 1800);
+  });
+}
+
+boot();
 </script>
 </body>
 </html>
