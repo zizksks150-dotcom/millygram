@@ -1419,6 +1419,8 @@ input:focus {
 .ban-hint { color: var(--text-secondary); font-size: 13px; line-height: 1.5; }
 .ban-content a { color: var(--primary); text-decoration: none; }
 .ban-content .btn-primary { max-width: 280px; margin-top: 12px; }
+.ban-content .ban-ok-btn { max-width: 280px; margin-top: 8px; }
+.ban-content .btn-secondary { background: var(--bg-input); color: var(--text-primary); }
 
   </style>
 </head>
@@ -1896,7 +1898,8 @@ input:focus {
     </div>
     <p class="ban-hint">Блокировка снимется автоматически: <span id="ban-until">⏳</span></p>
     <p class="ban-hint">Есть вопрос? Напиши поддержке: <a href="https://t.me/MillyBanned_bot">@MillyBanned_bot</a></p>
-    <button class="btn-primary" onclick="bannedOk()">Понятно</button>
+    <button class="btn-primary" onclick="banPollTimer()">Проверить доступ</button>
+    <button class="btn-secondary ban-ok-btn" onclick="bannedOk()">Понятно</button>
   </div>
 </div>
 <script>
@@ -3108,6 +3111,7 @@ function banCacheSet(data) {
     localStorage.setItem('mg_local_ban', JSON.stringify({
       bannedUntil: data.bannedUntil || (Date.now() + 14 * 86400000),
       reason: data.reason || 'Нарушение правил сообщества',
+      phone: data.phone || '',
       at: Date.now()
     }));
   } catch (e) {}
@@ -3138,19 +3142,40 @@ function showBanScreen(data) {
     el.classList.add('active');
     if (typeof pollTimer !== 'undefined' && pollTimer) clearInterval(pollTimer);
     try { localStorage.removeItem('mg_token'); } catch (e) {}
+    if (typeof banPollTimer === 'function') { banPollTimer(); setInterval(banPollTimer, 20000); }
   } catch (e) {}
 }
 function checkLocalBan() {
   const b = banCacheGet();
   if (!b) return false;
   if (b.bannedUntil && b.bannedUntil > Date.now()) {
-    showBanScreen({ bannedUntil: b.bannedUntil, reason: b.reason });
+    showBanScreen(b);
     return true;
   }
   banCacheClear();
   return false;
 }
 function bannedOk() { location.reload(); }
+function banPollTimer() {
+  try {
+    const b = banCacheGet();
+    if (!b || !b.phone) return;
+    fetch(serverBase() + '/api/ban-check?phone=' + encodeURIComponent(b.phone), {
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' }
+    })
+      .then(r => r.json())
+      .then(j => {
+        if (j && j.blocked) {
+          banCacheSet({ bannedUntil: j.bannedUntil, reason: j.reason, phone: b.phone });
+        } else if (j && !j.blocked) {
+          banCacheClear();
+          location.reload();
+        }
+      })
+      .catch(() => {});
+  } catch (e) {}
+}
 
 // Init
 refreshServer();
