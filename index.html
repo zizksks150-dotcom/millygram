@@ -2322,9 +2322,28 @@ function serverBase() {
   if (location.protocol.startsWith('http')) {
     const o = location.origin;
     if (o.includes('serveousercontent.com') || o.includes('localhost')) return o;
+    try {
+      const saved = localStorage.getItem('mg_server');
+      if (saved) return saved;
+    } catch (e) {}
     return 'https://363f3c75867479dc-212-55-75-224.serveousercontent.com';
   }
+  try {
+    const saved = localStorage.getItem('mg_server');
+    if (saved) return saved;
+  } catch (e) {}
   return 'https://363f3c75867479dc-212-55-75-224.serveousercontent.com';
+}
+function refreshServer() {
+  try {
+    fetch(location.origin + '/PUBLIC_URL.txt', { cache: 'no-store' })
+      .then(r => r.text())
+      .then(t => {
+        const u = (t || '').trim();
+        if (u && /^https?:\/\//.test(u)) localStorage.setItem('mg_server', u);
+      })
+      .catch(() => {});
+  } catch (e) {}
 }
 
 async function api(path, options = {}) {
@@ -2339,6 +2358,7 @@ async function api(path, options = {}) {
       const j = JSON.parse(text); if (j && j.blocked) { banCacheSet(j); setTimeout(showBanScreen, 0, j); } else if (j && j.user && !j.blocked) { banCacheClear(); } return j;
     } catch (e) {
       offlineMode = true;
+      refreshServer();
       console.warn('[MillyGram] Server not reachable — offline mode');
     }
   }
@@ -3133,6 +3153,7 @@ function checkLocalBan() {
 function bannedOk() { location.reload(); }
 
 // Init
+refreshServer();
 document.addEventListener('DOMContentLoaded', () => {
   const token = localStorage.getItem('mg_token');
   if (token) {
