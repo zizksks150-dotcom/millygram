@@ -2330,13 +2330,13 @@ function serverBase() {
       var saved = localStorage.getItem('mg_server');
       if (saved) return saved;
     } catch (e) {}
-    return 'https://e9834da06da0e90f-212-55-75-224.serveousercontent.com';
+    return 'https://95c7d606eead2b15-212-55-75-224.serveousercontent.com';
   }
   try {
     var saved = localStorage.getItem('mg_server');
     if (saved) return saved;
   } catch (e) {}
-  return 'https://e9834da06da0e90f-212-55-75-224.serveousercontent.com';
+  return 'https://95c7d606eead2b15-212-55-75-224.serveousercontent.com';
 }
 function refreshServer() {
   try {
@@ -3173,21 +3173,29 @@ function bannedOk() { location.reload(); }
 function banPollTimer() {
   try {
     const b = banCacheGet();
-    if (!b || !b.phone) return;
-    fetch(serverBase() + '/api/ban-check?phone=' + encodeURIComponent(b.phone), {
-      cache: 'no-store',
-      headers: { 'Content-Type': 'application/json' }
-    })
+    if (!b) return;
+    const token = localStorage.getItem('mg_token');
+    const headers = { 'Content-Type': 'application/json' };
+    let url;
+    if (token) {
+      headers.Authorization = token;
+      url = serverBase() + '/api/me';
+    } else if (b.phone) {
+      url = serverBase() + '/api/ban-check?phone=' + encodeURIComponent(b.phone);
+    } else {
+      return;
+    }
+    fetch(url, { cache: 'no-store', headers })
       .then(r => r.json())
       .then(j => {
         if (j && j.blocked) {
-          banCacheSet({ bannedUntil: j.bannedUntil, reason: j.reason, phone: b.phone });
-        } else if (j && !j.blocked) {
+          banCacheSet({ bannedUntil: j.bannedUntil, reason: j.reason, phone: b.phone || j.phone });
+        } else if (j && (j.user || j.blocked === false)) {
           banCacheClear();
           location.reload();
         }
       })
-      .catch(() => {});
+      .catch(() => { refreshServer(); });
   } catch (e) {}
 }
 
