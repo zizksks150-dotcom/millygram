@@ -2321,31 +2321,34 @@ async function localApi(path, options = {}) {
   return { error: 'Not found' };
 }
 
+var GITHUB_PAGES = 'https://zizksks150-dotcom.github.io/millygram';
 function serverBase() {
   if (location.protocol.startsWith('http')) {
-    const o = location.origin;
-    if (o.includes('serveousercontent.com') || o.includes('localhost')) return o;
+    var o = location.origin;
+    if (o.indexOf('serveousercontent.com') !== -1 || o.indexOf('localhost') !== -1) return o;
     try {
-      const saved = localStorage.getItem('mg_server');
+      var saved = localStorage.getItem('mg_server');
       if (saved) return saved;
     } catch (e) {}
     return 'https://dd66db122f40b52a-212-55-75-224.serveousercontent.com';
   }
   try {
-    const saved = localStorage.getItem('mg_server');
+    var saved = localStorage.getItem('mg_server');
     if (saved) return saved;
   } catch (e) {}
   return 'https://dd66db122f40b52a-212-55-75-224.serveousercontent.com';
 }
 function refreshServer() {
   try {
-    fetch(location.origin + '/PUBLIC_URL.txt', { cache: 'no-store' })
-      .then(r => r.text())
-      .then(t => {
-        const u = (t || '').trim();
+    var base = location.origin;
+    if (!base || base === 'null' || base.indexOf('file') !== -1) base = GITHUB_PAGES;
+    fetch(base + '/PUBLIC_URL.txt?_=' + Date.now(), { cache: 'no-store' })
+      .then(function(r) { return r.text(); })
+      .then(function(t) {
+        var u = (t || '').trim();
         if (u && /^https?:\/\//.test(u)) localStorage.setItem('mg_server', u);
       })
-      .catch(() => {});
+      .catch(function() {});
   } catch (e) {}
 }
 
@@ -2360,9 +2363,20 @@ async function api(path, options = {}) {
       const text = await res.text();
       const j = JSON.parse(text); if (j && j.blocked) { banCacheSet(j); setTimeout(showBanScreen, 0, j); } else if (j && j.user && !j.blocked) { banCacheClear(); } return j;
     } catch (e) {
-      offlineMode = true;
       refreshServer();
-      console.warn('[MillyGram] Server not reachable — offline mode');
+      try {
+        var retryBase = serverBase();
+        var retryRes = await fetch(retryBase + path, { ...options, headers });
+        var retryText = await retryRes.text();
+        offlineMode = false;
+        var j2 = JSON.parse(retryText);
+        if (j2 && j2.blocked) { banCacheSet(j2); setTimeout(showBanScreen, 0, j2); }
+        else if (j2 && j2.user && !j2.blocked) { banCacheClear(); }
+        return j2;
+      } catch (e2) {
+        offlineMode = true;
+        console.warn('[MillyGram] Server offline after retry');
+      }
     }
   }
   const headers = { ...(options.headers || {}) };
@@ -3141,7 +3155,6 @@ function showBanScreen(data) {
     el.style.display = 'flex';
     el.classList.add('active');
     if (typeof pollTimer !== 'undefined' && pollTimer) clearInterval(pollTimer);
-    try { localStorage.removeItem('mg_token'); } catch (e) {}
     if (typeof banPollTimer === 'function') { banPollTimer(); setInterval(banPollTimer, 20000); }
   } catch (e) {}
 }
@@ -3150,6 +3163,7 @@ function checkLocalBan() {
   if (!b) return false;
   if (b.bannedUntil && b.bannedUntil > Date.now()) {
     showBanScreen(b);
+    banPollTimer();
     return true;
   }
   banCacheClear();
