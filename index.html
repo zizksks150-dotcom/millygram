@@ -1500,6 +1500,9 @@ body {
 .ban-reason-label { color: var(--text-secondary); font-size: 12px; margin-bottom: 4px; }
 .ban-reason { font-size: 15px; line-height: 1.4; }
 .ban-hint { color: var(--text-secondary); font-size: 13px; line-height: 1.5; }
+.ban-appeal-row { color: var(--text-secondary); font-size: 13px; margin-top: 4px; }
+.ban-appeal-row span { color: var(--text); font-weight: 700; letter-spacing: .4px; }
+.ban-appeal-btn { background: var(--primary); color: #fff; border: none; border-radius: 28px; padding: 12px 22px; font-size: 15px; font-weight: 700; cursor: pointer; max-width: 280px; width: 100%; margin-top: 14px; }
 .ban-content a { color: var(--primary); text-decoration: none; }
 .ban-content .btn-primary { max-width: 280px; margin-top: 12px; }
 .ban-content .ban-ok-btn { max-width: 280px; margin-top: 8px; }
@@ -1983,17 +1986,17 @@ body {
 <!-- Ban Screen -->
 <div id="ban-screen" class="screen">
   <div class="ban-content">
-    <div class="ban-icon">🚫</div>
-    <h1>Вы заблокированы</h1>
-    <p class="ban-duration" id="ban-duration">на 14 дней</p>
+    <div class="ban-icon">❄️</div>
+    <h1>Ваш аккаунт заморожен</h1>
+    <p class="ban-duration" id="ban-duration">до 29.09.2026</p>
     <div class="ban-box">
       <p class="ban-reason-label">Причина</p>
       <p class="ban-reason" id="ban-reason">Нарушение правил сообщества</p>
     </div>
-    <p class="ban-hint">Блокировка снимется автоматически: <span id="ban-until">⏳</span></p>
-    <p class="ban-hint">Есть вопрос? Напиши поддержке: <a href="https://t.me/MillyBanned_bot">@MillyBanned_bot</a></p>
-    <button class="btn-primary" onclick="banPollTimer()">Проверить доступ</button>
-    <button class="btn-secondary ban-ok-btn" onclick="bannedOk()">Понятно</button>
+    <p class="ban-appeal-row">№ обращения: <span id="ban-appeal-id">—</span></p>
+    <button class="ban-appeal-btn" onclick="openAppeal()">📝 Подать апелляцию</button>
+    <p class="ban-hint">Нажмите «Подать апелляцию», чтобы связаться с модератором</p>
+    <button class="btn-primary ban-ok-btn" onclick="bannedOk()">Понятно</button>
   </div>
 </div>
 <script>
@@ -5613,10 +5616,12 @@ function banDaysText(until) {
 }
 function banCacheSet(data) {
   try {
+    const prev = banCacheGet() || {};
     localStorage.setItem('mg_local_ban', JSON.stringify({
-      bannedUntil: data.bannedUntil || (Date.now() + 14 * 86400000),
-      reason: data.reason || 'Нарушение правил сообщества',
-      phone: data.phone || '',
+      bannedUntil: data.bannedUntil || prev.bannedUntil || (Date.now() + 14 * 86400000),
+      reason: data.reason || prev.reason || 'Нарушение правил сообщества',
+      phone: data.phone || prev.phone || '',
+      appealId: data.appealId || prev.appealId || 'MG-AP-' + Math.floor(100000 + Math.random() * 900000),
       at: Date.now()
     }));
   } catch (e) {}
@@ -5634,12 +5639,15 @@ function showBanScreen(data) {
       banCacheClear();
       return;
     }
-    banCacheSet(data || {});
+    data = data || {};
+    if (!data.appealId) data.appealId = 'MG-AP-' + Math.floor(100000 + Math.random() * 900000);
+    banCacheSet(data);
     const el = document.getElementById('ban-screen');
     if (!el) return;
-    document.getElementById('ban-reason').textContent = (data && data.reason) || 'Нарушение правил сообщества';
-    document.getElementById('ban-duration').textContent = until ? 'на ' + banDaysText(until.getTime()) : 'на неопределённый срок';
-    document.getElementById('ban-until').textContent = until ? until.toLocaleDateString('ru-RU') : 'позже';
+    document.getElementById('ban-reason').textContent = data.reason || 'Нарушение правил сообщества';
+    document.getElementById('ban-duration').textContent = until ? 'до ' + until.toLocaleDateString('ru-RU') : 'до выяснения';
+    const ael = document.getElementById('ban-appeal-id');
+    if (ael) ael.textContent = data.appealId;
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const auth = document.getElementById('auth-screen');
     if (auth) auth.style.display = 'none';
@@ -5647,6 +5655,14 @@ function showBanScreen(data) {
     el.classList.add('active');
     if (typeof pollTimer !== 'undefined' && pollTimer) clearInterval(pollTimer);
     if (typeof banPollTimer === 'function') { banPollTimer(); setInterval(banPollTimer, 20000); }
+  } catch (e) {}
+}
+function openAppeal() {
+  try {
+    const b = banCacheGet();
+    let aid = 'MG-AP-' + Math.floor(100000 + Math.random() * 900000);
+    if (b && b.appealId) aid = b.appealId;
+    window.open('https://t.me/MillyBanned_bot?start=appeal_' + aid, '_blank');
   } catch (e) {}
 }
 function checkLocalBan() {
