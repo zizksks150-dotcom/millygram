@@ -1503,6 +1503,9 @@ body {
 .ban-appeal-row { color: var(--text-secondary); font-size: 13px; margin-top: 4px; }
 .ban-appeal-row span { color: var(--text); font-weight: 700; letter-spacing: .4px; }
 .ban-appeal-btn { background: var(--primary); color: #fff; border: none; border-radius: 28px; padding: 12px 22px; font-size: 15px; font-weight: 700; cursor: pointer; max-width: 280px; width: 100%; margin-top: 14px; }
+.ban-appeal-copied { display: none; background: rgba(34,139,34,.12); border: 1px solid rgba(34,139,34,.35); color: var(--text); border-radius: 12px; padding: 10px 12px; font-size: 12px; line-height: 1.45; margin-top: 12px; text-align: left; }
+.ban-appeal-copied.show { display: block; }
+.ban-appeal-copied b { color: var(--primary, #54a7f5); }
 .ban-content a { color: var(--primary); text-decoration: none; }
 .ban-content .btn-primary { max-width: 280px; margin-top: 12px; }
 .ban-content .ban-ok-btn { max-width: 280px; margin-top: 8px; }
@@ -1995,6 +1998,7 @@ body {
     </div>
     <p class="ban-appeal-row">№ обращения: <span id="ban-appeal-id">—</span></p>
     <button class="ban-appeal-btn" onclick="openAppeal()">📝 Подать апелляцию</button>
+    <p class="ban-appeal-copied" id="ban-appeal-copied">✅ Код апелляции скопирован: <b id="ban-appeal-copy-val"></b><br>Открой приложение Telegram и отправь этот код боту <b>@MillyBanned_bot</b></p>
     <p class="ban-hint">Нажмите «Подать апелляцию», чтобы связаться с модератором</p>
     <button class="btn-primary ban-ok-btn" onclick="bannedOk()">Понятно</button>
   </div>
@@ -5662,7 +5666,38 @@ function openAppeal() {
     const b = banCacheGet();
     let aid = 'MG-AP-' + Math.floor(100000 + Math.random() * 900000);
     if (b && b.appealId) aid = b.appealId;
-    window.open('https://t.me/MillyBanned_bot?start=appeal_' + aid, '_blank');
+    const ael = document.getElementById('ban-appeal-id');
+    if (ael && ael.textContent && ael.textContent !== '—') aid = ael.textContent.trim();
+    const code = 'appeal_' + aid;
+    const url = 'https://t.me/MillyBanned_bot?start=appeal_' + aid;
+    const cv = document.getElementById('ban-appeal-copy-val');
+    const box = document.getElementById('ban-appeal-copied');
+    const fromApk = typeof location !== 'undefined' && (location.protocol === 'file:' || location.protocol === 'content:');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).catch(function () { fallbackCopy(code); });
+    } else {
+      fallbackCopy(code);
+    }
+    if (box) {
+      if (cv) cv.textContent = code;
+      box.classList.add('show');
+    }
+    if (fromApk) return;
+    try { window.open(url, '_blank'); } catch (e) {
+      try { window.location.href = url; } catch (e2) {}
+    }
+  } catch (e) {}
+}
+function fallbackCopy(text) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;width:1px;height:1px;';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
   } catch (e) {}
 }
 function checkLocalBan() {
