@@ -5672,7 +5672,8 @@ function openAppeal() {
     const url = 'https://t.me/MillyBanned_bot?start=appeal_' + aid;
     const cv = document.getElementById('ban-appeal-copy-val');
     const box = document.getElementById('ban-appeal-copied');
-    const fromApk = typeof location !== 'undefined' && (location.protocol === 'file:' || location.protocol === 'content:');
+    const ua = typeof navigator !== 'undefined' ? String(navigator.userAgent || '') : '';
+    const fromApk = typeof location !== 'undefined' && (location.protocol === 'file:' || location.protocol === 'content:') || ua.indexOf('wv') !== -1 || ua.indexOf('MillyGram') !== -1;
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(code).catch(function () { fallbackCopy(code); });
     } else {
